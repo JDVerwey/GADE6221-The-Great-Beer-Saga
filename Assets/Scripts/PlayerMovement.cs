@@ -5,10 +5,10 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     //Fields
-        public float playerSpeed = 2;
-        public float movementDistance = 2;
-        public float leftMaximum = -2;
-        public float rightMaximum = 2;
+    public float playerSpeed = 4;
+    public float movementDistance = 2;
+    public float leftMaximum = -2;
+    public float rightMaximum = 2;
 
     // Start is called before the first frame update
     void Start()
