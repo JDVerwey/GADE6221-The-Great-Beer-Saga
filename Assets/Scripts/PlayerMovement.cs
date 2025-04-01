@@ -1,6 +1,8 @@
 using System.Collections;
 using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -9,11 +11,12 @@ public class PlayerMovement : MonoBehaviour
     public float movementDistance = 2;
     public float leftMaximum = -2;
     public float rightMaximum = 2;
+    public Vector3 playerStartPosition; //Stores the starting position for use in the spawning of the obstacles
 
     // Start is called before the first frame update
     void Start()
     {
-
+        playerStartPosition = transform.position; 
     }
 
     // Update is called once per frame
