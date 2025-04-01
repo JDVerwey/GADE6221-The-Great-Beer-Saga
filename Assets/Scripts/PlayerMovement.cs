@@ -13,7 +13,7 @@ public class PlayerMovement : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
-       
+
     }
 
     // Update is called once per frame
@@ -26,22 +26,21 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.A))
         {
             //If the position fo the player - the distance the player moves is more than the maximum distance left
-            if(transform.position.x - movementDistance >= leftMaximum)
+            if (transform.position.x - movementDistance >= leftMaximum)
             {
                 //move the player to the left 
                 transform.Translate(Vector3.left * movementDistance);
-            }         
+            }
         }
         //if the D key is pressed on the keyboard
         if (Input.GetKeyDown(KeyCode.D))
         {
             //If the position fo the player + the distance the player moves is less than the maximum distance Right
-            if (transform.position.x + movementDistance <= rightMaximum) 
+            if (transform.position.x + movementDistance <= rightMaximum)
             {
                 //move the player to the Right
                 transform.Translate(Vector3.right * movementDistance);
             }
         }
     }
-   
 }
