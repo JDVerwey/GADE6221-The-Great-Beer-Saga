@@ -32,6 +32,17 @@ public class GameManager : MonoBehaviour
         score = 0;
         gameOver = false;
     }
+    
+    //Method to add score 
+    public void AddScore(int points)
+    {
+        if (!gameOver)
+        {
+            score += points;
+            //Update the UI in the method as well
+      
+        }
+    }
 
     void Update()
     {
@@ -46,6 +57,7 @@ public class GameManager : MonoBehaviour
     public void OnObstacleCollision()
     {
             gameOver = true; // End run (Rule 5)
+            Debug.Log("Game Over");
     }
 
     // Called by ObstacleSpawner.cs when an obstacle is passed
@@ -73,6 +85,9 @@ public class GameManager : MonoBehaviour
     {
         gameOver = true; // End run (Rule 5)
         Debug.Log("Boss fight lost! Game Over!");
+        //Show Game Over screen 
+        var exElement= GameObject.Find("Finish");
+        exElement.SetActive(true);
     }
 
     // Reset game state (e.g., for restart)

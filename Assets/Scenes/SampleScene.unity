@@ -122,6 +122,51 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &73129139
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 73129141}
+  - component: {fileID: 73129140}
+  m_Layer: 0
+  m_Name: GameManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &73129140
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 73129139}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9290d9b7337ba28418473a14b60a9038, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 1729369837}
+--- !u!4 &73129141
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 73129139}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.5877849, y: 1.6501424, z: -16.398329}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &281943530
 GameObject:
   m_ObjectHideFlags: 0
@@ -135,7 +180,7 @@ GameObject:
   - component: {fileID: 281943532}
   m_Layer: 5
   m_Name: DeathPanel
-  m_TagString: Untagged
+  m_TagString: Finish
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -432,6 +477,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   obstaclePrefabs:
   - {fileID: 4945646341849228029, guid: 935421e8f2417e44bbac60d3c0ba541c, type: 3}
+  - {fileID: 5933322977875424084, guid: 6e213b0fe993d6a498e8280f42238702, type: 3}
   player: {fileID: 1729369841}
   spawnDistance: 15
   spawnInterval: 2.5
@@ -891,7 +937,7 @@ MonoBehaviour:
   berry: {fileID: 1940704190646375120, guid: e97f78501a265c3438246315e19f904c, type: 3}
   player: {fileID: 1729369841}
   spawnDistance: 20
-  spawnInterval: 1.5
+  spawnInterval: 5
 --- !u!4 &1412837243
 Transform:
   m_ObjectHideFlags: 0
@@ -920,9 +966,10 @@ GameObject:
   - component: {fileID: 1729369839}
   - component: {fileID: 1729369838}
   - component: {fileID: 1729369837}
+  - component: {fileID: 1729369842}
   m_Layer: 0
   m_Name: Player
-  m_TagString: Untagged
+  m_TagString: Player
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -941,9 +988,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playerSpeed: 4
   movementDistance: 2
-  leftMaximum: -2
-  rightMaximum: 2
-  playerStartPosition: {x: 0, y: 0, z: 0}
+  jumpForce: 5
+  laneSwitchSpeed: 10
 --- !u!136 &1729369838
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -1033,6 +1079,33 @@ Transform:
   - {fileID: 963194228}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!54 &1729369842
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1729369836}
+  serializedVersion: 4
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_CenterOfMass: {x: 0, y: 0, z: 0}
+  m_InertiaTensor: {x: 1, y: 1, z: 1}
+  m_InertiaRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ImplicitCom: 1
+  m_ImplicitTensor: 1
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 112
+  m_CollisionDetection: 0
 --- !u!1 &2089404927
 GameObject:
   m_ObjectHideFlags: 0
@@ -1187,7 +1260,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 6540341318895452038, guid: b418631db0363984fbf37e995129af35, type: 3}
       propertyPath: m_LocalPosition.y
-      value: -8.82
+      value: 0.15
       objectReference: {fileID: 0}
     - target: {fileID: 6540341318895452038, guid: b418631db0363984fbf37e995129af35, type: 3}
       propertyPath: m_LocalPosition.z
@@ -1237,3 +1310,4 @@ SceneRoots:
   - {fileID: 597820131}
   - {fileID: 707313768}
   - {fileID: 458520971}
+  - {fileID: 73129141}
