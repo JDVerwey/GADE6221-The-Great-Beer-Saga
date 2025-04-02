@@ -1,7 +1,5 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;
-using UnityEngine.UIElements;
 
 public class GameManager : MonoBehaviour
 {
@@ -15,7 +13,7 @@ public class GameManager : MonoBehaviour
     public GameObject deathPanel;
 
     // References (optional, set in Inspector)
-    public PlayerMovement player;       // Reference to player for control disabling (optional)
+    public PlayerMovement player;       // Reference to player for control disabling
 
     void Awake()
     {
@@ -23,18 +21,24 @@ public class GameManager : MonoBehaviour
         if (Instance == null)
         {
             Instance = this;
-            DontDestroyOnLoad(gameObject); // Persist across scenes (optional)
+            DontDestroyOnLoad(gameObject); // Persist across scenes
         }
         else
         {
             Destroy(gameObject); // Ensure only one instance exists
         }
 
-        //Resets the game when the reset button is clicked
+        //Setup for the reset button for when the game needs to rest
         if (resetButton != null)
+        {
+            resetButton.onClick.RemoveAllListeners(); // Good practice before adding
             resetButton.onClick.AddListener(ResetGame);
-        //deactivates the game over screen
-        deathPanel.SetActive(false);
+        }
+        if(deathPanel != null)
+        {
+            deathPanel.SetActive(false);
+        }
+        
     }
 
     void Start()
@@ -56,19 +60,16 @@ public class GameManager : MonoBehaviour
 
     void Update()
     {
-        // Handle game over state
-        if (gameOver)
-        {
-            //Show Game Over screen 
-            deathPanel.SetActive(true);
-        }
+
     }
 
     // Called by ObstacleCollider.cs when player hits an obstacle
     public void OnObstacleCollision()
     {
         gameOver = true; // End run (Rule 5)
-        Debug.Log("Game Over");
+        
+        //Show Game Over screen 
+        deathPanel.SetActive(true);
     }
 
     // Called by ObstacleSpawner.cs when an obstacle is passed
@@ -98,9 +99,10 @@ public class GameManager : MonoBehaviour
         Debug.Log("Boss fight lost! Game Over!");
     }
 
-    // Reset game state (e.g., for restart)
+    // Reset game state for restart
     public void ResetGame()
     {
+        //Reload the scene
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
