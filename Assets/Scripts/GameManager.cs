@@ -1,4 +1,7 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
+using UnityEngine.UIElements;
 
 public class GameManager : MonoBehaviour
 {
@@ -8,6 +11,8 @@ public class GameManager : MonoBehaviour
     // Game state variables
     public static int score = 0;        // Player's current score
     public static bool gameOver = false;// True when run ends
+    public UnityEngine.UI.Button resetButton; //instance of the restart button
+    public GameObject deathPanel;
 
     // References (optional, set in Inspector)
     public PlayerMovement player;       // Reference to player for control disabling (optional)
@@ -24,6 +29,12 @@ public class GameManager : MonoBehaviour
         {
             Destroy(gameObject); // Ensure only one instance exists
         }
+
+        //Resets the game when the reset button is clicked
+        if (resetButton != null)
+            resetButton.onClick.AddListener(ResetGame);
+        //deactivates the game over screen
+        deathPanel.SetActive(false);
     }
 
     void Start()
@@ -32,7 +43,7 @@ public class GameManager : MonoBehaviour
         score = 0;
         gameOver = false;
     }
-    
+
     //Method to add score 
     public void AddScore(int points)
     {
@@ -40,7 +51,6 @@ public class GameManager : MonoBehaviour
         {
             score += points;
             //Update the UI in the method as well
-      
         }
     }
 
@@ -49,15 +59,16 @@ public class GameManager : MonoBehaviour
         // Handle game over state
         if (gameOver)
         {
-            
+            //Show Game Over screen 
+            deathPanel.SetActive(true);
         }
     }
 
     // Called by ObstacleCollider.cs when player hits an obstacle
     public void OnObstacleCollision()
     {
-            gameOver = true; // End run (Rule 5)
-            Debug.Log("Game Over");
+        gameOver = true; // End run (Rule 5)
+        Debug.Log("Game Over");
     }
 
     // Called by ObstacleSpawner.cs when an obstacle is passed
@@ -85,18 +96,11 @@ public class GameManager : MonoBehaviour
     {
         gameOver = true; // End run (Rule 5)
         Debug.Log("Boss fight lost! Game Over!");
-        //Show Game Over screen 
-        var exElement= GameObject.Find("Finish");
-        exElement.SetActive(true);
     }
 
     // Reset game state (e.g., for restart)
     public void ResetGame()
     {
-        score = 0;
-        gameOver = false;
-        if (player != null)
-            player.enabled = true; // Re-enable player controls
-        Debug.Log("Game Reset!");
+        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
 }
