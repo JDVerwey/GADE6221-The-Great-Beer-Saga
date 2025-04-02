@@ -18,7 +18,7 @@ public class ObstacleSpawner : MonoBehaviour
         if (timer >= spawnInterval)
         {
             int lane = Random.Range(0, 3);
-            Vector3 spawnPosition = new Vector3(lane * 2f - 2f, 0f, player.position.z + spawnDistance);
+            Vector3 spawnPosition = new Vector3(lane * 2f - 2f, 0.75f, player.position.z + spawnDistance);
             GameObject obstacle = Instantiate(obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)], spawnPosition, Quaternion.identity);
             obstacle.GetComponent<Obstacles>().Initialize(lane);
             timer = 0f;

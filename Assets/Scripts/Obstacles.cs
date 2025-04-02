@@ -41,7 +41,7 @@ public class Obstacles : MonoBehaviour
                     Debug.LogError("GameManager.Instance is null!");
                 }
             }
-            if (transform.position.z < player.position.z - 10f)
+            if (transform.position.z < player.position.z - 7f)
             {
                 Destroy(gameObject);
             }

@@ -3,9 +3,9 @@ using UnityEngine;
 public class PlayerMovement : MonoBehaviour
 {
     //Fields for player movement
-    public float playerSpeed = 4f;
+    public float playerSpeed = 14f;
     public float movementDistance = 2f;
-    public float jumpForce = 5f;
+    public float jumpForce = 6f;
     
     //Fields for our lane system of movement
     private int currentLane = 1; // 0 = left (-2), 1 = middle (0), 2 = right (2)
@@ -16,6 +16,11 @@ public class PlayerMovement : MonoBehaviour
     //Fields for the jumping of our player
     private Rigidbody rb;
     private bool isGrounded = true;
+    
+    //Effect variables 
+    private float normalSpeed; // Store original speed
+    private float slowTimer; // Timer for slow effect
+    private bool isSlowed; // Track slow state
 
     // Start is called before the first frame update
     void Start()
@@ -23,6 +28,7 @@ public class PlayerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         rb.isKinematic = true; // Set to kinematic to avoid physics interference with Translate
         targetPosition = transform.position = new Vector3(lanePositions[currentLane], transform.position.y, transform.position.z);
+        normalSpeed = playerSpeed; // Initialize normal speed
     }
 
     // Update is called once per frame
@@ -56,6 +62,17 @@ public class PlayerMovement : MonoBehaviour
             rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
             isGrounded = false;
         }
+        // Handle slow timer
+        if (isSlowed)
+        {
+            slowTimer -= Time.deltaTime;
+            if (slowTimer <= 0f)
+            {
+                playerSpeed = normalSpeed;
+                isSlowed = false;
+                Debug.Log("Player speed restored to: " + playerSpeed);
+            }
+        }
     }
     //Update position method 
     private void UpdateTargetPosition()
@@ -72,16 +89,17 @@ public class PlayerMovement : MonoBehaviour
             
     }
     
-    //Event calls for the powerups effecting movement speed 
-    public void ApplyBerryEffect()
+    public void ApplyBerryEffect(float slowMultiplier, float duration)
     {
-        playerSpeed = playerSpeed * 0.5f; // Slow down by 50%
-        Invoke(nameof(ResetSpeed), 15f); // Reset after 15 seconds
+        if (!isSlowed) // Prevent stacking slow effects
+        {
+            normalSpeed = playerSpeed; // Store current speed before slowing
+            playerSpeed *= slowMultiplier;
+            slowTimer = duration;
+            isSlowed = true;
+            Debug.Log("Player slowed to: " + playerSpeed);
+        }
     }
     
-    //Method to reset speed 
-    private void ResetSpeed()
-    {
-        playerSpeed = 4f; // Reset to original speed
-    }
+
 }
