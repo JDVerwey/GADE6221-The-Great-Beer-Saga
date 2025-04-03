@@ -20,10 +20,6 @@ public class GameManager : MonoBehaviour
     public Button pauseRestartButton; // Restart button on pause menu
     public Button resumeButton; // Resume button on pause menu
     public TMP_Text scoreText; // Variable for the score text in the menu
-    
-
-    // References (optional, set in Inspector)
-    public PlayerMovement player;       // Reference to player for control disabling
 
     void Awake()
     {
@@ -70,9 +66,6 @@ public class GameManager : MonoBehaviour
     void InitializeReferences()
     {
         // --- Find UI Elements ---
-        // This assumes your panel GameObject is NAMED "DeathPanel" in the Hierarchy.
-        // Using tags or direct Inspector assignment in a scene-specific setup object
-        // can be more robust than Find.
         GameObject deathPanelObj = GameObject.Find("DeathPanel");
         if (deathPanelObj != null)
         {
@@ -81,7 +74,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("GameManager: Could not find 'DeathPanel' GameObject in the scene!");
+            Debug.LogError("GameManager: Could not find 'DeathPanel' GameObject in the scene");
             deathPanel = null; // Set to null so we don't try to use a bad reference
         }
 
@@ -98,7 +91,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("GameManager: Could not find 'ResetButton'!");
+            Debug.LogError("GameManager: Could not find 'ResetButton'");
         }
 
         // Pause Panel
@@ -109,7 +102,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("GameManager: Could not find 'PausePanel'!");
+            Debug.LogError("GameManager: Could not find 'PausePanel'");
             pausePanel = null;
         }
 
@@ -126,7 +119,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("GameManager: Could not find 'PauseRestartButton'!");
+            Debug.LogError("GameManager: Could not find 'PauseRestartButton'");
         }
 
         // Resume Button
@@ -142,7 +135,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("GameManager: Could not find 'ResumeButton'!");
+            Debug.LogError("GameManager: Could not find 'ResumeButton'");
         }
         
         // Score Text
@@ -157,7 +150,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("GameManager: Could not find 'ScoreText'!");
+            Debug.LogError("GameManager: Could not find 'ScoreText'");
             scoreText = null;
         }
     }
@@ -211,7 +204,7 @@ public class GameManager : MonoBehaviour
         if (!gameOver)
         {
             AddScore(1); // Increment score
-            UpdateScoreUI();
+            UpdateScoreUI(); //Update UI to show new score
         }
     }
 
@@ -229,7 +222,7 @@ public class GameManager : MonoBehaviour
     public void OnBossLoss()
     {
         gameOver = true; // End run (Rule 5)
-        Debug.Log("Boss fight lost! Game Over!");
+        Debug.Log("Boss fight lost! Game Over");
     }
 
     // Reset game state for restart
@@ -252,12 +245,13 @@ public class GameManager : MonoBehaviour
         else
         {
             // This error means InitializeReferences failed to find the panel earlier
-            Debug.LogError("GameManager: Cannot show Death Panel - reference is missing!");
+            Debug.LogError("GameManager: Cannot show Death Panel - reference is missing");
         }
     }
     
     void PauseGame()
     {
+        //Check if the pause panel
         if (pausePanel != null)
         {
             isPaused = true;
@@ -267,7 +261,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("GameManager: Cannot show Pause Panel - reference is missing!");
+            Debug.LogError("GameManager: Cannot show Pause Panel - reference is missing");
         }
     }
 
@@ -290,7 +284,7 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("GameManager: ScoreText is null, cannot update score UI!");
+            Debug.LogError("GameManager: ScoreText is null, cannot update score UI");
         }
     }
 }

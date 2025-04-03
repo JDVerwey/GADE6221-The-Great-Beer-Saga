@@ -668,7 +668,7 @@ MonoBehaviour:
   - {fileID: 5933322977875424084, guid: 6e213b0fe993d6a498e8280f42238702, type: 3}
   - {fileID: 1225448819567809389, guid: f2412090298cb5c40b2ba45d38a56089, type: 3}
   player: {fileID: 1729369841}
-  spawnDistance: 20
+  spawnDistance: 40
   spawnInterval: 0.75
 --- !u!4 &597820131
 Transform:

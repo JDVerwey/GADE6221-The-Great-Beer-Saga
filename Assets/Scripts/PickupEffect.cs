@@ -9,12 +9,14 @@ public class PickupEffects : MonoBehaviour
 {
     void OnTriggerEnter(Collider other)
     {
+        //Check if colider is with player
         if (other.CompareTag("Player"))
         {
-            PlayerMovement playerMovement = other.GetComponent<PlayerMovement>();
+            PlayerMovement playerMovement = other.GetComponent<PlayerMovement>(); // Reference to player
             if (playerMovement != null)
             {
-                playerMovement.ApplyBerryEffect(0.5f, 5f); // Halve speed for 15 seconds
+                //Apply the berry Effect
+                playerMovement.ApplyBerryEffect(0.5f, 5f); // Halve speed for 5 seconds
                 Destroy(gameObject); // Remove berry
                 Debug.Log("Berry collected, slowing player");
             }

@@ -14,13 +14,21 @@ public class ObstacleSpawner : MonoBehaviour
 
     void Update()
     {
+        //Timer for spawning obstacle
         timer += Time.deltaTime;
+        
+        //Check if we need to spawn
         if (timer >= spawnInterval)
         {
+            //Choose lane to spawn
             int lane = Random.Range(0, 3);
+            //Create position to spawn
             Vector3 spawnPosition = new Vector3(lane * 2f - 2f, 0.75f, player.position.z + spawnDistance);
+            //Spawn the obstacle 
             GameObject obstacle = Instantiate(obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)], spawnPosition, Quaternion.identity);
+            //Ensures obstacle knows in which lane to spawn
             obstacle.GetComponent<Obstacles>().Initialize(lane);
+            //Reset timer to spawn new obstsacle
             timer = 0f;
         }
     }

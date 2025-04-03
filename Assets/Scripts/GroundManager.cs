@@ -69,7 +69,7 @@ public class GroundManager : MonoBehaviour
     {
         //set the spawn position
         Vector3 spawnPos = new Vector3(0f, 0f, lastSpawnZ);
-        //Rotate the platform to be in the correct orientation 
+        //Rotate the platform to be in the correct orientation according to a rotation Quaternion 
         Quaternion spawnRotation = Quaternion.Euler(0f, 90f, 0f);
         //instantiate the ground and save it as the newSegment game object
         GameObject newSegment = Instantiate(groundPrefab, spawnPos, spawnRotation);

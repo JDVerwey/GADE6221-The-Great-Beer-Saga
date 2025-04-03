@@ -4,9 +4,9 @@ public class ObstacleCollider : MonoBehaviour
 {
     void OnTriggerEnter(Collider other)
     {
+        //Check if the player collided with obstacle
         if (other.CompareTag("Player"))
         {
-            //GameManager.Instance.AddScore(1); // Score increases by 1 when passing
             GameManager.Instance.OnObstacleCollision();
         }
     }
