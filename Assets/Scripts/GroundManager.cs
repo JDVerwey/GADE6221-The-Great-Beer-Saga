@@ -78,4 +78,5 @@ public class GroundManager : MonoBehaviour
         // Update the last spawn position
         lastSpawnZ += segmentLength;
     }
+
 }

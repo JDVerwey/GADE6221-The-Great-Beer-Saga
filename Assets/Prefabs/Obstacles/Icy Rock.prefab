@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Icy Rock
       objectReference: {fileID: 0}
+    - target: {fileID: 8604014862111390200, guid: 705ea568440259c4c8f0e26ac261c69b, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 8947607110731227970, guid: 705ea568440259c4c8f0e26ac261c69b, type: 3}
       propertyPath: m_LocalScale.x
       value: 3.1299486

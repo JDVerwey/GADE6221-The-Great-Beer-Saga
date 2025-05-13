@@ -12,6 +12,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Broken Wall
       objectReference: {fileID: 0}
+    - target: {fileID: 2587417470786599933, guid: 17c46f4ea9c350c42aad0d4f5417e601, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
     - target: {fileID: 2928336840982241607, guid: 17c46f4ea9c350c42aad0d4f5417e601, type: 3}
       propertyPath: m_LocalScale.x
       value: 1.2283902

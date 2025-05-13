@@ -69,6 +69,10 @@ PrefabInstance:
       value: Fallen tree
       objectReference: {fileID: 0}
     - target: {fileID: 6693981810754073259, guid: 26b77681ae929914aa6f5b15a802120e, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 6693981810754073259, guid: 26b77681ae929914aa6f5b15a802120e, type: 3}
       propertyPath: m_TagString
       value: Obstacle
       objectReference: {fileID: 0}

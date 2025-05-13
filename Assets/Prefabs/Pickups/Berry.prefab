@@ -69,6 +69,10 @@ PrefabInstance:
       value: Berry
       objectReference: {fileID: 0}
     - target: {fileID: 7728323397839296704, guid: 77e3d811a3264a342a4289fb3b2d284e, type: 3}
+      propertyPath: m_Layer
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 7728323397839296704, guid: 77e3d811a3264a342a4289fb3b2d284e, type: 3}
       propertyPath: m_TagString
       value: Pickup
       objectReference: {fileID: 0}
