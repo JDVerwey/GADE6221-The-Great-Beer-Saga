@@ -31,6 +31,11 @@ public class PlayerMovement : MonoBehaviour
 
     // Animator reference
     private Animator playerAnimator;
+    
+    [Header("PowerUps")]
+    public GameObject wolfPrefab; // Assign your Wolf Prefab in the Inspector
+    private WolfController activeWolfInstance;
+    
 
     // Start is called before the first frame update
     void Start()
@@ -184,4 +189,35 @@ public class PlayerMovement : MonoBehaviour
             Debug.Log("Player slowed to: " + playerSpeed);
         }
     }
+    
+    //Implementation for Wolf Pathfinding pickup 
+    public void ActivateWolfPowerUp(float duration)
+    {
+        Debug.Log("Player picked up Wolf PowerUp");
+        if (wolfPrefab == null)
+        {
+            Debug.LogError("Wolf Prefab not assigned in PlayerMovement script");
+            return;
+        }
+
+        // Instantiate the wolf if it doesn't exist or isn't active
+        // Or, if you implement object pooling, get one from the pool.
+        if (activeWolfInstance == null || !activeWolfInstance.gameObject.activeInHierarchy)
+        {
+            GameObject wolfGO = Instantiate(wolfPrefab); // Position will be set by WolfController
+            activeWolfInstance = wolfGO.GetComponent<WolfController>();
+
+            if (activeWolfInstance == null)
+            {
+                Debug.LogError("WolfController component not found");
+                Destroy(wolfGO); // Clean up
+                return;
+            }
+        }
+    
+        // Activate/Re-activate the wolf
+        // Pass necessary player info: transform, duration, current speed, current lane, and lane positions array
+        activeWolfInstance.Activate(transform, duration, this.playerSpeed, this.currentLane, this.lanePositions);
+    }
+
 }
