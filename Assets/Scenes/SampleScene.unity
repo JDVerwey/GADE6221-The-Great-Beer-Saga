@@ -646,7 +646,7 @@ GameObject:
   - component: {fileID: 597820130}
   m_Layer: 0
   m_Name: ObstacleSpawner
-  m_TagString: Untagged
+  m_TagString: Obstacle Spawner
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -669,12 +669,11 @@ MonoBehaviour:
   - {fileID: 1225448819567809389, guid: f2412090298cb5c40b2ba45d38a56089, type: 3}
   player: {fileID: 2078450510}
   spawnDistance: 40
-  spawnInterval: 0.75
-  occupiedCheckRadius: 1
+  spawnInterval: 1.25
+  minClearanceRadius: 10
   obstacleLayer:
     serializedVersion: 2
-    m_Bits: 0
-  maxSpawnAttemptsPerCycle: 3
+    m_Bits: 64
 --- !u!4 &597820131
 Transform:
   m_ObjectHideFlags: 0
@@ -1233,13 +1232,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
-  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.057, y: 5.7679996, z: -14.710907}
+  m_LocalRotation: {x: 0.012242142, y: -0, z: -0, w: 0.9999251}
+  m_LocalPosition: {x: 0.057, y: 2.424, z: -3.899}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 2078450510}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 1.403, y: 0, z: 0}
 --- !u!1 &1151951067
 GameObject:
   m_ObjectHideFlags: 0
@@ -2034,6 +2033,7 @@ MonoBehaviour:
   movementDistance: 2
   jumpForce: 6
   laneSwitchSpeed: 10
+  fallMultiplier: 3
 --- !u!4 &2078450510 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6947d24b8986bff45822938e5ed02736, type: 3}
