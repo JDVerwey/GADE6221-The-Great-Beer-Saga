@@ -2034,7 +2034,7 @@ MonoBehaviour:
   jumpForce: 6
   laneSwitchSpeed: 10
   fallMultiplier: 3
-  wolfPrefab: {fileID: 8401243745063591422, guid: d922af600ab670548b5895fb4b2049d3, type: 3}
+  wolfPrefab: {fileID: 44457722849579249, guid: e9117ec28393384438a05110f67c07e4, type: 3}
 --- !u!4 &2078450510 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6947d24b8986bff45822938e5ed02736, type: 3}
