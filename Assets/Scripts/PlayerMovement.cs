@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.VisualScripting;
 using UnityEngine;
 
@@ -35,6 +36,10 @@ public class PlayerMovement : MonoBehaviour
     [Header("PowerUps")]
     public GameObject wolfPrefab; // Assign your Wolf Prefab in the Inspector
     private WolfController activeWolfInstance;
+    private bool isShieldActive = false;
+    private Coroutine flashingCoroutine; 
+    public Renderer[] playerRenderers; 
+    public float flashInterval = 0.15f; 
     
 
     // Start is called before the first frame update
@@ -164,6 +169,7 @@ public class PlayerMovement : MonoBehaviour
 
     void OnCollisionEnter(Collision collision)
     {
+        Debug.LogError("Collided with " + collision);
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
@@ -173,6 +179,26 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
+
+    public bool CheckShield()
+        {
+                if (isShieldActive)
+                {
+                    Debug.Log("Shield absorbed obstacle hit!");
+                    isShieldActive = false; // Consume the shield
+                    StopFlashingEffect();   // Stop the visual effect
+
+                    // Indicate to not end the game 
+                    return false; 
+                }
+                else
+                {
+                    // Player hit an obstacle without a shield - Handle Game Over
+                    Debug.Log("Player hit obstacle! Game Over.");
+                    // End Game
+                    return true;
+                }
+        }
 
     public void ApplyBerryEffect(float slowMultiplier, float duration)
     {
@@ -220,4 +246,73 @@ public class PlayerMovement : MonoBehaviour
         activeWolfInstance.Activate(transform, duration, this.playerSpeed, this.currentLane, this.lanePositions);
     }
 
+    public void ActivateShieldPowerUp()
+    {
+        if (!isShieldActive) // Only activate if not already active, or re-activate
+        {
+            Debug.Log("Shield PowerUp Activated!");
+            isShieldActive = true;
+            StartFlashingEffect();
+        }
+    }
+
+    private void StartFlashingEffect()
+    {
+        //Error check if player renderer not found
+        if (playerRenderers == null || playerRenderers.Length == 0) return;
+
+        if (flashingCoroutine != null)
+        {
+            StopCoroutine(flashingCoroutine);
+        }
+        flashingCoroutine = StartCoroutine(FlashingEffectCoroutine());
+    }
+
+    private void StopFlashingEffect()
+    {
+        if (playerRenderers == null || playerRenderers.Length == 0) return;
+
+        if (flashingCoroutine != null)
+        {
+            StopCoroutine(flashingCoroutine);
+            flashingCoroutine = null;
+        }
+        // Ensure all renderers are visible when effect stops
+        foreach (Renderer rend in playerRenderers)
+        {
+            if (rend != null) rend.enabled = true;
+        }
+    }
+
+    IEnumerator FlashingEffectCoroutine()
+    {
+        if (playerRenderers == null || playerRenderers.Length == 0)
+        {
+            Debug.Log("Cannot start flashing effect: Player Renderers not assigned or found.");
+            yield break; // Exit coroutine if no renderers
+        }
+
+        // Ensure renderers are initially visible
+        foreach (Renderer rend in playerRenderers)
+        {
+            if (rend != null) rend.enabled = true;
+        }
+
+        while (isShieldActive)
+        {
+            // Toggle visibility
+            foreach (Renderer rend in playerRenderers)
+            {
+                if (rend != null) rend.enabled = !rend.enabled;
+            }
+            yield return new WaitForSeconds(flashInterval);
+        }
+
+        // Ensure renderers are visible once the shield is no longer active
+        foreach (Renderer rend in playerRenderers)
+        {
+            if (rend != null) rend.enabled = true;
+        }
+        flashingCoroutine = null; // Clear the coroutine reference
+    }
 }

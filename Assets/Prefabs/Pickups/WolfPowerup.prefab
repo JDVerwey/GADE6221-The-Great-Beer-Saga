@@ -15,9 +15,9 @@ GameObject:
   - component: {fileID: 8251379077386580447}
   - component: {fileID: 9018136879280991308}
   - component: {fileID: 5606636617702096739}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: WolfPowerup
-  m_TagString: Untagged
+  m_TagString: Pickup
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0

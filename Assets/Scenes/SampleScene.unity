@@ -634,6 +634,11 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 555538466}
   m_CullTransparentMesh: 1
+--- !u!137 &572379573 stripped
+SkinnedMeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -4730650505322845212, guid: 6947d24b8986bff45822938e5ed02736, type: 3}
+  m_PrefabInstance: {fileID: 2078450505}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &597820129
 GameObject:
   m_ObjectHideFlags: 0
@@ -664,9 +669,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   obstaclePrefabs:
-  - {fileID: 4945646341849228029, guid: 935421e8f2417e44bbac60d3c0ba541c, type: 3}
-  - {fileID: 5933322977875424084, guid: 6e213b0fe993d6a498e8280f42238702, type: 3}
-  - {fileID: 1225448819567809389, guid: f2412090298cb5c40b2ba45d38a56089, type: 3}
+  - {fileID: 1096709583620599869, guid: 27b1c99f742051b46b307deac992e2c1, type: 3}
+  - {fileID: 5993759082037873366, guid: 6f4e06679b2fadd45bd0b15bff7083a8, type: 3}
+  - {fileID: 3724100466951592744, guid: 34a67837b9d4fac41a7e58872b3b2c0f, type: 3}
   player: {fileID: 2078450510}
   spawnDistance: 40
   spawnInterval: 1.25
@@ -1389,10 +1394,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a806eca11d6a5a64f921d182442fe867, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  berry: {fileID: 5041248178888923786, guid: 92755c41be570b6438831fecb0e6c3b2, type: 3}
+  pickupPrefabs:
+  - {fileID: 1940704190646375120, guid: e97f78501a265c3438246315e19f904c, type: 3}
+  - {fileID: 5041248178888923786, guid: 92755c41be570b6438831fecb0e6c3b2, type: 3}
+  - {fileID: 7171322690205702249, guid: ccf97c8c82ca5fe41bcac27c77e1b3a3, type: 3}
   player: {fileID: 2078450510}
   spawnDistance: 20
-  spawnInterval: 5
+  spawnInterval: 3
+  minClearanceRadius: 1
+  obstacleLayer:
+    serializedVersion: 2
+    m_Bits: 64
 --- !u!4 &1412837243
 Transform:
   m_ObjectHideFlags: 0
@@ -2035,6 +2047,9 @@ MonoBehaviour:
   laneSwitchSpeed: 10
   fallMultiplier: 3
   wolfPrefab: {fileID: 44457722849579249, guid: e9117ec28393384438a05110f67c07e4, type: 3}
+  playerRenderers:
+  - {fileID: 572379573}
+  flashInterval: 0.4
 --- !u!4 &2078450510 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6947d24b8986bff45822938e5ed02736, type: 3}
