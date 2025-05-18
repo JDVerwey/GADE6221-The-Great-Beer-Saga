@@ -33,8 +33,12 @@ public class ObstacleSpawner : MonoBehaviour
             if (!Physics.CheckSphere(spawnPosition, minClearanceRadius, obstacleLayer, QueryTriggerInteraction.Ignore))
             {
                 // If the area is clear, then spawn the obstacle
-                GameObject obstacle = Instantiate(obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)], spawnPosition, Quaternion.identity);
+                // First, select the prefab
+                GameObject prefabToSpawn = obstaclePrefabs[Random.Range(0, obstaclePrefabs.Length)];
 
+                // Then, instantiate it using its own rotation
+                GameObject obstacle = Instantiate(prefabToSpawn, spawnPosition, prefabToSpawn.transform.rotation);
+                
                 //Ensures obstacle knows in which lane to spawn
                 Obstacles obstacleScript = obstacle.GetComponent<Obstacles>();
                 if (obstacleScript != null)

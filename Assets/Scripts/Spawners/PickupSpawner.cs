@@ -70,13 +70,14 @@ public class PickupSpawner : MonoBehaviour
 
                 if (pickupToSpawn != null)
                 {
+
                     //Spawn the selected pickup
-                    Instantiate(pickupToSpawn, spawnPosition, Quaternion.identity);
+                    Instantiate(pickupToSpawn, spawnPosition, pickupToSpawn.transform.rotation);
                     // Debug.Log($"Spawned pickup: {pickupToSpawn.name} at {spawnPosition}"); // Optional: for testing
                 }
                 else
                 {
-                    Debug.LogWarning($"Pickup prefab at index {randomIndex} is null. Skipping spawn.");
+                    Debug.Log($"Pickup prefab at index {randomIndex} is null. Skipping spawn.");
                 }
             }
 
