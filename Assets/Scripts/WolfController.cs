@@ -28,6 +28,10 @@ public class WolfController : MonoBehaviour
     private float activeTimer;
     private bool isWolfActive = false;
     private Coroutine pathfindingCoroutine;
+    
+    //UI variables 
+    [Header("UI Elements")] 
+    public GameObject WolfGuiElement;
 
     void Awake()
     {
@@ -224,5 +228,7 @@ public class WolfController : MonoBehaviour
         }
         gameObject.SetActive(false);
         Debug.Log("Wolf Deactivated.");
+        //Hide Wolf GUI 
+        WolfGuiElement.SetActive(false);
     }
 }

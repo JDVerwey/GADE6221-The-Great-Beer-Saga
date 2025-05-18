@@ -8,6 +8,9 @@ TagManager:
   - Obstacle
   - Pickup
   - Obstacle Spawner
+  - BerryPickup
+  - WolfPickup
+  - ShieldPickup
   layers:
   - Default
   - TransparentFX

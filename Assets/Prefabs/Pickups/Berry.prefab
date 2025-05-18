@@ -74,30 +74,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7728323397839296704, guid: 77e3d811a3264a342a4289fb3b2d284e, type: 3}
       propertyPath: m_TagString
-      value: Pickup
+      value: BerryPickup
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7728323397839296704, guid: 77e3d811a3264a342a4289fb3b2d284e, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3235109218441460644}
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 77e3d811a3264a342a4289fb3b2d284e, type: 3}
---- !u!1 &1940704190646375120 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7728323397839296704, guid: 77e3d811a3264a342a4289fb3b2d284e, type: 3}
-  m_PrefabInstance: {fileID: 8191556252503624208}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3235109218441460644
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1940704190646375120}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9b478d09bf5d34b4886cab150e467da2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 

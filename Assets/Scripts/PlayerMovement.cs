@@ -41,7 +41,22 @@ public class PlayerMovement : MonoBehaviour
     public Renderer[] playerRenderers; 
     public float flashInterval = 0.15f; 
     
+    [Header("Pickup Tags")]
+    public string berryPickupTag = "BerryPickup";
+    public string wolfPickupTag = "WolfPickup";
+    public string shieldPickupTag = "ShieldPickup";
+    
+    private GameObject lastTouchedPickup;
+    
+    [Header("UI Elements")] 
+    public GameObject berryGuiElement;
+    public GameObject ShieldGuiElement;
+    public GameObject WolfGuiElement;
+    
+    private bool isWolfPowerUpActive = false;
 
+
+    
     // Start is called before the first frame update
     void Start()
     {
@@ -78,6 +93,11 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.Log("Player Animator component not found");
         }
+        
+        //Disable GUI components 
+        berryGuiElement.SetActive(false);
+        ShieldGuiElement.SetActive(false);
+        WolfGuiElement.SetActive(false);
     }
 
     // Update is called once per frame
@@ -138,6 +158,9 @@ public class PlayerMovement : MonoBehaviour
                 }
                 isSlowed = false;
                 Debug.Log("Player speed restored to: " + playerSpeed);
+                
+                //Hide Berry GUI 
+                berryGuiElement.SetActive(true);
             }
         }
     }
@@ -145,7 +168,7 @@ public class PlayerMovement : MonoBehaviour
     // FixedUpdate is called at a fixed interval and is good for physics calculations
     void FixedUpdate()
     {
-        if (rb == null || rb.isKinematic) // Do nothing if no rigidbody or if it's kinematic
+        if (rb == null) // Do nothing if no rigidbody or if it's kinematic
             return;
 
         if (!isGrounded) // Only apply when in the air
@@ -158,6 +181,39 @@ public class PlayerMovement : MonoBehaviour
                 rb.AddForce(Vector3.up * Physics.gravity.y * (fallMultiplier - 1), ForceMode.Acceleration);
             }
 
+        }
+        
+        // Process the last touched pickup, if any
+        if (lastTouchedPickup != null)
+        {
+            GameObject pickupToProcess = lastTouchedPickup;
+            lastTouchedPickup = null; // Clear it immediately to handle the next potential pickup
+
+            if (pickupToProcess == null) // Should not happen if collider was disabled, but good check
+            {
+                return;
+            }
+
+            // Identify and process the pickup
+            if (pickupToProcess.CompareTag(berryPickupTag))
+            {
+                ApplyBerryEffect(0.5f, 5f);
+                Debug.Log("Berry collected, slowing player (processed in FixedUpdate)", this);
+            }
+            else if (pickupToProcess.CompareTag(wolfPickupTag))
+            {
+                WolfPickup wolfPickupScript = pickupToProcess.GetComponent<WolfPickup>();
+                if (wolfPickupScript != null)
+                {
+                    ActivateWolfPowerUp(wolfPickupScript.powerUpDuration);
+                }
+            }
+            else if (pickupToProcess.CompareTag(shieldPickupTag))
+            {
+                ActivateShieldPowerUp();
+            }
+
+            Destroy(pickupToProcess); // Destroy the pickup after processing
         }
     }
 
@@ -178,6 +234,19 @@ public class PlayerMovement : MonoBehaviour
             }
         }
     }
+    
+    //For the pickup collection
+    void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag(berryPickupTag) ||
+            other.CompareTag(wolfPickupTag) ||
+            other.CompareTag(shieldPickupTag))
+        {
+            
+            lastTouchedPickup = other.gameObject;
+            other.enabled = false; // Disable the collider of the pickup to prevent re-triggering
+        }
+    }
 
     public bool CheckShield()
         {
@@ -186,7 +255,8 @@ public class PlayerMovement : MonoBehaviour
                     Debug.Log("Shield absorbed obstacle hit!");
                     isShieldActive = false; // Consume the shield
                     StopFlashingEffect();   // Stop the visual effect
-
+                    //Hide GUI 
+                    ShieldGuiElement.SetActive(false);
                     // Indicate to not end the game 
                     return false; 
                 }
@@ -211,39 +281,42 @@ public class PlayerMovement : MonoBehaviour
                 obstacleSpawnerIns.spawnInterval *= 2f; // Clear way to write "times 2"
             }
             isSlowed = true;
+            //Show Berry GUI 
+            berryGuiElement.SetActive(true);
             Debug.Log("Player slowed to: " + playerSpeed);
         }
     }
     
-    //Implementation for Wolf Pathfinding pickup 
+//Implementation for Wolf Pathfinding pickup
     public void ActivateWolfPowerUp(float duration)
     {
-        Debug.Log("Player picked up Wolf PowerUp");
+        Debug.Log("Player picked up Wolf PowerUp", this);
         if (wolfPrefab == null)
         {
-            Debug.LogError("Wolf Prefab not assigned in PlayerMovement script");
+            Debug.LogError("Wolf Prefab not assigned in PlayerMovement script", this);
             return;
         }
 
         // Instantiate the wolf if it doesn't exist or isn't active
-        // Or, if you implement object pooling, get one from the pool.
         if (activeWolfInstance == null || !activeWolfInstance.gameObject.activeInHierarchy)
         {
-            GameObject wolfGO = Instantiate(wolfPrefab); // Position will be set by WolfController
+            GameObject wolfGO = Instantiate(wolfPrefab);
             activeWolfInstance = wolfGO.GetComponent<WolfController>();
 
             if (activeWolfInstance == null)
             {
-                Debug.LogError("WolfController component not found");
+                Debug.Log("WolfController component not found on instantiated wolfPrefab", wolfGO);
                 Destroy(wolfGO); // Clean up
                 return;
             }
         }
-    
+
         // Activate/Re-activate the wolf
-        // Pass necessary player info: transform, duration, current speed, current lane, and lane positions array
         activeWolfInstance.Activate(transform, duration, this.playerSpeed, this.currentLane, this.lanePositions);
+        isWolfPowerUpActive = true;
+        if (WolfGuiElement != null) WolfGuiElement.SetActive(true);
     }
+
 
     public void ActivateShieldPowerUp()
     {
@@ -251,6 +324,8 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.Log("Shield PowerUp Activated!");
             isShieldActive = true;
+            //Show Shield GUI 
+            ShieldGuiElement.SetActive(true);
             StartFlashingEffect();
         }
     }
@@ -281,6 +356,8 @@ public class PlayerMovement : MonoBehaviour
         {
             if (rend != null) rend.enabled = true;
         }
+        //Hide Shield GUI 
+        ShieldGuiElement.SetActive(true);
     }
 
     IEnumerator FlashingEffectCoroutine()

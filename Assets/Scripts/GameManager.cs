@@ -265,7 +265,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    void ResumeGame()
+    public void ResumeGame()
     {
         if (pausePanel != null)
         {
@@ -286,5 +286,11 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogError("GameManager: ScoreText is null, cannot update score UI");
         }
+    }
+
+    public void CloseGame()
+    {
+        //Close the game 
+        Application.Quit();
     }
 }
