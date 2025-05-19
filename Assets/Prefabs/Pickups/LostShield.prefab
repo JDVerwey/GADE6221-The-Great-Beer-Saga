@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8684448121792985532}
   - component: {fileID: 1670607796193087505}
   - component: {fileID: 4650438808878350112}
+  - component: {fileID: 3590002468244081134}
   m_Layer: 6
   m_Name: LostShield
   m_TagString: ShieldPickup
@@ -137,3 +138,15 @@ MeshCollider:
   m_Convex: 1
   m_CookingOptions: 30
   m_Mesh: {fileID: 3390558720134950976, guid: 356377213d051084d848eb06584eefe0, type: 3}
+--- !u!114 &3590002468244081134
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7171322690205702249}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b33583f39532fb940bf48b671070a1b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
