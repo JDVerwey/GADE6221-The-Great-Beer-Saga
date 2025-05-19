@@ -6,7 +6,6 @@ public class PlayerMovement : MonoBehaviour
 {
     //Fields for player movement
     public float playerSpeed = 14f;
-    public float movementDistance = 2f; // This field seems unused. Consider removing if not needed.
     public float jumpForce = 6f;
 
     //Fields for our lane system of movement
@@ -54,6 +53,10 @@ public class PlayerMovement : MonoBehaviour
     public GameObject WolfGuiElement;
     
     private bool isWolfPowerUpActive = false;
+    
+    GameManager gameManagerComp;
+    BossSpawner BossSpawnerComp;
+    private int nextBossSpawnScoreThreshold = 40;
 
 
     
@@ -69,7 +72,8 @@ public class PlayerMovement : MonoBehaviour
         }
 
         rb.isKinematic = true; // Set to kinematic to avoid physics interference with Translate
-        targetPosition = transform.position = new Vector3(lanePositions[currentLane], transform.position.y, transform.position.z);
+        targetPosition = transform.position =
+            new Vector3(lanePositions[currentLane], transform.position.y, transform.position.z);
         normalSpeed = playerSpeed; // Initialize normal speed
 
         // Get ObstacleSpawner instance
@@ -93,11 +97,26 @@ public class PlayerMovement : MonoBehaviour
         {
             Debug.Log("Player Animator component not found");
         }
-        
+
         //Disable GUI components 
         berryGuiElement.SetActive(false);
         ShieldGuiElement.SetActive(false);
         WolfGuiElement.SetActive(false);
+
+        //Get Game Manager component
+        GameObject gameManagerObject = GameObject.Find("GameManager");
+        if (gameManagerObject != null)
+        {
+            gameManagerComp = gameManagerObject.GetComponent<GameManager>();
+
+        }
+        
+        //Get the BossSpawner component 
+        GameObject BossSpawnerObject = GameObject.Find("BossSpawner");
+        if (BossSpawnerObject != null)
+        {
+            BossSpawnerComp = BossSpawnerObject.GetComponent<BossSpawner>();
+        }
     }
 
     // Update is called once per frame
@@ -160,7 +179,7 @@ public class PlayerMovement : MonoBehaviour
                 Debug.Log("Player speed restored to: " + playerSpeed);
                 
                 //Hide Berry GUI 
-                berryGuiElement.SetActive(true);
+                berryGuiElement.SetActive(false);
             }
         }
     }
@@ -214,6 +233,15 @@ public class PlayerMovement : MonoBehaviour
             }
 
             Destroy(pickupToProcess); // Destroy the pickup after processing
+        }
+        
+        //Check score to spawn the boss 
+        if (gameManagerComp.GetScore() >= nextBossSpawnScoreThreshold)
+        {
+            //Spawn the boss 
+            BossSpawnerComp.SpawnBoss();
+            // Set the next threshold for the boss spawn
+            nextBossSpawnScoreThreshold += 40;
         }
     }
 

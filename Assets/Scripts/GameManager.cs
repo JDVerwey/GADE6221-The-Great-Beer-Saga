@@ -21,6 +21,10 @@ public class GameManager : MonoBehaviour
     public Button resumeButton; // Resume button on pause menu
     public TMP_Text scoreText; // Variable for the score text in the menu
 
+    public int GetScore()
+    {
+        return score;
+    }
     void Awake()
     {
         // Set up singleton

@@ -29,9 +29,8 @@ public class WolfController : MonoBehaviour
     private bool isWolfActive = false;
     private Coroutine pathfindingCoroutine;
     
-    //UI variables 
-    [Header("UI Elements")] 
-    public GameObject WolfGuiElement;
+    //Get the player movement script 
+    public PlayerMovement playerMovementScript;
 
     void Awake()
     {
@@ -44,6 +43,7 @@ public class WolfController : MonoBehaviour
             trailRenderer.emitting = false; // Start with trail off
         }
         gameObject.SetActive(false); // Start inactive, will be activated by player
+
     }
 
     public void Activate(Transform player, float duration, float playerCurrentSpeed, int playerCurrentLane, float[] playerLanePositions)
@@ -85,6 +85,15 @@ public class WolfController : MonoBehaviour
         }
         pathfindingCoroutine = StartCoroutine(PathfindingCoroutine());
         Debug.Log("Wolf Activated. Speed: " + wolfSpeed + ", Duration: " + duration);
+        
+        // Get and store the PlayerMovement script component
+        playerMovementScript = player.GetComponent<PlayerMovement>();
+        if (playerMovementScript == null)
+        {
+            Debug.LogError("WolfController: PlayerMovement script not found on the provided player Transform.", player);
+            // Optionally, decide if the wolf should still activate or not
+            // For now, we'll let it activate but log the error.
+        }
     }
 
     void Update()
@@ -229,6 +238,6 @@ public class WolfController : MonoBehaviour
         gameObject.SetActive(false);
         Debug.Log("Wolf Deactivated.");
         //Hide Wolf GUI 
-        WolfGuiElement.SetActive(false);
+        playerMovementScript.WolfGuiElement.SetActive(false);
     }
 }
