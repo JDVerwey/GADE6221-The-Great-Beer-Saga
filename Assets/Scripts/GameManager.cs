@@ -2,6 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;    
+using System;
 
 public class GameManager : MonoBehaviour
 {
@@ -12,6 +13,7 @@ public class GameManager : MonoBehaviour
     public static int score = 0;        // Player's current score
     public static bool gameOver = false;// True when run ends
     public static bool isPaused = false;
+    public static int levelsBeaten = 0;
     
     // UI References
     public Button resetButton; // Restart button on death panel
@@ -20,11 +22,43 @@ public class GameManager : MonoBehaviour
     public Button pauseRestartButton; // Restart button on pause menu
     public Button resumeButton; // Resume button on pause menu
     public TMP_Text scoreText; // Variable for the score text in the menu
+    public TMP_Text levelsBeatenText; // Variable for the levels beaten text in the menu
+
+    // --- Event Definitions ---
+    public static event Action OnObstaclePassedEvent; // Invoked when an obstacle is passed
+    
+    // Enum to identify pickup types
+    public enum PickupType { Berry, Wolf, Shield }
+    public static event Action<PickupType> OnPickupActivatedEvent; // Invoked when a pickup is activated
+
+    public static event Action OnBossSpawnedEvent; // Invoked when a boss spawns
+    public static event Action OnBossBeatenEvent;  // Invoked when a boss is beaten
+    // --- End of Event Definitions ---
 
     public int GetScore()
     {
         return score;
     }
+
+    public int GetLevelsBeaten()
+    {
+        return levelsBeaten;
+    }
+    
+    void SubscribeToEvents()
+    {
+        OnObstaclePassedEvent += HandleObstaclePassedScore;
+        OnBossBeatenEvent += HandleBossBeatenScore;
+    }
+    
+    void UpdateLevelsBeatenUI()
+    {
+        if (levelsBeatenText != null)
+        {
+            levelsBeatenText.text = "Bosses Beaten: " + levelsBeaten;
+        }
+    }
+    
     void Awake()
     {
         // Set up singleton
@@ -32,13 +66,20 @@ public class GameManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject); // Persist across scenes
-            
-            //sceneLoaded event to re-find references to objects on reset 
             SceneManager.sceneLoaded += OnSceneLoaded;
+
+            // Subscribe GameManager methods to its own events
+            SubscribeToEvents();
+            
+            // Call InitializeReferences() only for the true singleton instance on its first Awake.
+            // OnSceneLoaded will handle re-initialization for subsequent scene loads.
+            InitializeReferences();
         }
         else
         {
-            Destroy(gameObject); // Ensure only one instance exists
+            // If an Instance already exists, this is a duplicate.
+            Destroy(gameObject); // Destroy this duplicate GameObject.
+            return; // Exit Awake early for this duplicate instance.
         }
         // Initial setup (will be called again via OnSceneLoaded after reset)
         InitializeReferences();
@@ -48,6 +89,9 @@ public class GameManager : MonoBehaviour
     void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
+        
+        UnsubscribeFromEvents(); // Unsubscribe when destroyed
+        
         // Clean up button listener if it exists
         if (resetButton != null)
             resetButton.onClick.RemoveListener(ResetGame);
@@ -157,6 +201,8 @@ public class GameManager : MonoBehaviour
             Debug.LogError("GameManager: Could not find 'ScoreText'");
             scoreText = null;
         }
+        UpdateScoreUI();
+        UpdateLevelsBeatenUI(); // Initialize new score display
     }
     
     // Reset game state variables
@@ -169,6 +215,58 @@ public class GameManager : MonoBehaviour
         if (deathPanel != null) deathPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(false);
         UpdateScoreUI(); // Reset score display
+        UpdateLevelsBeatenUI();
+    }
+    void UnsubscribeFromEvents()
+    {
+        OnObstaclePassedEvent -= HandleObstaclePassedScore;
+        OnBossBeatenEvent -= HandleBossBeatenScore;
+    }
+    
+    private void HandleObstaclePassedScore()
+    {
+        if (!gameOver && !isPaused)
+        {
+            score += 1;
+            UpdateScoreUI();
+        }
+    }
+
+    private void HandleBossBeatenScore()
+    {
+        if (!gameOver && !isPaused)
+        {
+            levelsBeaten += 1;
+            // You could also add points to the main score here if desired
+            // score += 10; // Example: Add 10 points to main score for beating a boss
+            UpdateLevelsBeatenUI();
+            UpdateScoreUI(); // If main score was also affected
+            Debug.Log("Boss Beaten! Levels Beaten: " + levelsBeaten);
+        }
+    }
+    
+    public void ReportObstaclePassed()
+    {
+        OnObstaclePassedEvent?.Invoke();
+        // Debug.Log("OnObstaclePassedEvent Invoked");
+    }
+
+    public void ReportPickupActivated(PickupType type)
+    {
+        OnPickupActivatedEvent?.Invoke(type);
+        Debug.Log($"OnPickupActivatedEvent Invoked for: {type}");
+    }
+
+    public void ReportBossSpawned()
+    {
+        OnBossSpawnedEvent?.Invoke();
+        Debug.Log("OnBossSpawnedEvent Invoked");
+    }
+
+    public void ReportBossBeaten() // Renamed from OnBossOvercome for clarity with event
+    {
+        OnBossBeatenEvent?.Invoke();
+        // Debug.Log("OnBossBeatenEvent Invoked via ReportBossBeaten");
     }
     
     //Method to add score 
@@ -201,33 +299,25 @@ public class GameManager : MonoBehaviour
         //Show Game Over screen 
         ShowGameOverScreen();
     }
-
-    // Called by ObstacleSpawner.cs when an obstacle is passed
-    public void OnObstaclePassed()
+    
+    public void OnObstaclePassed() // Called by ObstacleSpawner.cs
     {
-        if (!gameOver)
-        {
-            AddScore(1); // Increment score
-            UpdateScoreUI(); //Update UI to show new score
-        }
+        ReportObstaclePassed();
     }
 
-    // Called by BossFight.cs when boss is overcome or dodged
-    public void OnBossOvercome()
+    // This method is now simplified
+    public void OnBossOvercome() // Called by BossFight.cs
     {
-        if (!gameOver)
-        {
-            score += 10; // Add 10 points (Rule 22)
-            Debug.Log("Boss overcome! Score: " + score);
-        }
+        ReportBossBeaten();
     }
 
-    // Called by BossFight.cs when player loses boss fight
     public void OnBossLoss()
     {
-        gameOver = true; // End run (Rule 5)
+        gameOver = true;
         Debug.Log("Boss fight lost! Game Over");
+        ShowGameOverScreen(); // Show game over screen on boss loss too
     }
+
 
     // Reset game state for restart
     public void ResetGame()

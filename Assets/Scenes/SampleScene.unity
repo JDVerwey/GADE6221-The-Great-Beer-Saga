@@ -2142,6 +2142,7 @@ GameObject:
   - component: {fileID: 963194227}
   - component: {fileID: 963194226}
   - component: {fileID: 963194229}
+  - component: {fileID: 963194230}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -2217,11 +2218,11 @@ Transform:
   m_GameObject: {fileID: 963194225}
   serializedVersion: 2
   m_LocalRotation: {x: 0.012242142, y: -0, z: -0, w: 0.9999251}
-  m_LocalPosition: {x: 0.057, y: 2.94, z: -5.61}
+  m_LocalPosition: {x: 0, y: 3.572, z: -18.718094}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2078450510}
+  m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 1.403, y: 0, z: 0}
 --- !u!114 &963194229
 MonoBehaviour:
@@ -2267,6 +2268,19 @@ MonoBehaviour:
     m_MipBias: 0
     m_VarianceClampScale: 0.9
     m_ContrastAdaptiveSharpening: 0
+--- !u!114 &963194230
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 963194225}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 71646646858fe1240bc9b8c5069881db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 2078450510}
 --- !u!1 &1086123277
 GameObject:
   m_ObjectHideFlags: 0
@@ -4724,9 +4738,6 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6947d24b8986bff45822938e5ed02736, type: 3}
-      insertIndex: 0
-      addedObject: {fileID: 963194228}
-    - targetCorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6947d24b8986bff45822938e5ed02736, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2068715647}
     m_AddedComponents:
@@ -4821,6 +4832,8 @@ MonoBehaviour:
   berryGuiElement: {fileID: 727437482}
   ShieldGuiElement: {fileID: 1086123277}
   WolfGuiElement: {fileID: 1734205204}
+  maxRotationAngle: 20
+  rotationSpeed: 10
 --- !u!4 &2078450510 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 6947d24b8986bff45822938e5ed02736, type: 3}
@@ -4973,5 +4986,6 @@ SceneRoots:
   - {fileID: 458520971}
   - {fileID: 73129141}
   - {fileID: 349389072}
+  - {fileID: 963194228}
   - {fileID: 2078450505}
   - {fileID: 870541117}

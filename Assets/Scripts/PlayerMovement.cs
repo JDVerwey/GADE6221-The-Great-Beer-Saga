@@ -31,35 +31,41 @@ public class PlayerMovement : MonoBehaviour
 
     // Animator reference
     private Animator playerAnimator;
-    
+
     [Header("PowerUps")]
     public GameObject wolfPrefab; // Assign your Wolf Prefab in the Inspector
     private WolfController activeWolfInstance;
     private bool isShieldActive = false;
-    private Coroutine flashingCoroutine; 
-    public Renderer[] playerRenderers; 
-    public float flashInterval = 0.15f; 
-    
+    private Coroutine flashingCoroutine;
+    public Renderer[] playerRenderers;
+    public float flashInterval = 0.15f;
+
     [Header("Pickup Tags")]
     public string berryPickupTag = "BerryPickup";
     public string wolfPickupTag = "WolfPickup";
     public string shieldPickupTag = "ShieldPickup";
-    
+
     private GameObject lastTouchedPickup;
-    
-    [Header("UI Elements")] 
+
+    [Header("UI Elements")]
     public GameObject berryGuiElement;
     public GameObject ShieldGuiElement;
     public GameObject WolfGuiElement;
-    
-    private bool isWolfPowerUpActive = false;
-    
-    GameManager gameManagerComp;
+
+    private bool isWolfPowerUpActive = false; // This might be redundant if activeWolfInstance is checked
+
+    // GameManager gameManagerComp; // Can be removed if only using GameManager.Instance
     BossSpawner BossSpawnerComp;
     private int nextBossSpawnScoreThreshold = 40;
 
+    // Fields for lane switch rotation
+    [Header("Lane Switch Rotation")]
+    public float maxRotationAngle = 20f; // Max angle to rotate during lane switch
+    public float rotationSpeed = 10f;   // Speed of rotation
+    private Quaternion targetRotation;  // Target rotation for the player
 
-    
+
+
     // Start is called before the first frame update
     void Start()
     {
@@ -71,183 +77,140 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        rb.isKinematic = true; // Set to kinematic to avoid physics interference with Translate
+        rb.isKinematic = true;
         targetPosition = transform.position =
             new Vector3(lanePositions[currentLane], transform.position.y, transform.position.z);
-        normalSpeed = playerSpeed; // Initialize normal speed
+        normalSpeed = playerSpeed;
 
-        // Get ObstacleSpawner instance
         GameObject spawnerObject = GameObject.Find("ObstacleSpawner");
         if (spawnerObject != null)
-        {
             obstacleSpawnerIns = spawnerObject.GetComponent<ObstacleSpawner>();
-            if (obstacleSpawnerIns == null)
-            {
-                Debug.Log("ObstacleSpawner component not found on the 'ObstacleSpawner' GameObject");
-            }
-        }
         else
-        {
             Debug.Log("GameObject with name 'ObstacleSpawner' not found");
-        }
 
-        // Get the Animator component
         playerAnimator = GetComponent<Animator>();
-        if (playerAnimator == null)
-        {
-            Debug.Log("Player Animator component not found");
-        }
+        if (playerAnimator == null) Debug.Log("Player Animator component not found");
 
-        //Disable GUI components 
-        berryGuiElement.SetActive(false);
-        ShieldGuiElement.SetActive(false);
-        WolfGuiElement.SetActive(false);
+        if (berryGuiElement != null) berryGuiElement.SetActive(false);
+        if (ShieldGuiElement != null) ShieldGuiElement.SetActive(false);
+        if (WolfGuiElement != null) WolfGuiElement.SetActive(false);
 
-        //Get Game Manager component
-        GameObject gameManagerObject = GameObject.Find("GameManager");
-        if (gameManagerObject != null)
-        {
-            gameManagerComp = gameManagerObject.GetComponent<GameManager>();
+        // gameManagerComp = GameManager.Instance; // Access via singleton if needed, but direct calls are fine
 
-        }
-        
-        //Get the BossSpawner component 
         GameObject BossSpawnerObject = GameObject.Find("BossSpawner");
         if (BossSpawnerObject != null)
-        {
             BossSpawnerComp = BossSpawnerObject.GetComponent<BossSpawner>();
-        }
+        else
+            Debug.LogError("PlayerMovement: Could not find 'BossSpawner' GameObject.");
+
+
+        targetRotation = Quaternion.identity;
     }
 
-    // Update is called once per frame
     void Update()
     {
-        // Move forward continuously
         transform.Translate(Vector3.forward * Time.deltaTime * playerSpeed, Space.World);
 
-        // Lane switching
         if (Input.GetKeyDown(KeyCode.A) && currentLane > 0)
         {
             currentLane--;
             UpdateTargetPosition();
+            targetRotation = Quaternion.Euler(0, -maxRotationAngle, 0);
         }
         if (Input.GetKeyDown(KeyCode.D) && currentLane < 2)
         {
             currentLane++;
             UpdateTargetPosition();
+            targetRotation = Quaternion.Euler(0, maxRotationAngle, 0);
         }
 
-        // Smoothly move to target lane position
-        // Only Lerp the X position to avoid interfering with jump's Y movement
         Vector3 currentPos = transform.position;
         float newX = Mathf.Lerp(currentPos.x, targetPosition.x, Time.deltaTime * laneSwitchSpeed);
         transform.position = new Vector3(newX, currentPos.y, currentPos.z);
 
+        if (Mathf.Abs(transform.position.x - targetPosition.x) < 0.05f)
+        {
+            if (targetRotation != Quaternion.identity)
+            {
+                targetRotation = Quaternion.identity;
+            }
+        }
+        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
 
-        // Jumping when space is pressed
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             if (rb != null)
             {
-                rb.isKinematic = false; // Temporarily disable kinematic for jump
+                rb.isKinematic = false;
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
                 isGrounded = false;
-
-                // Trigger jump animation
-                if (playerAnimator != null)
-                {
-                    playerAnimator.SetBool("IsJumping", true);
-                }
+                if (playerAnimator != null) playerAnimator.SetBool("IsJumping", true);
             }
         }
 
-        // Handle slow timer
         if (isSlowed)
         {
-            //Start Timer
             slowTimer -= Time.deltaTime;
             if (slowTimer <= 0f)
             {
-                //Reset Speed
                 playerSpeed = normalSpeed;
-                if (obstacleSpawnerIns != null)
-                {
-                    //Reset Spawn interval
-                    obstacleSpawnerIns.spawnInterval *= 0.5f;
-                }
+                if (obstacleSpawnerIns != null) obstacleSpawnerIns.spawnInterval *= 0.5f;
                 isSlowed = false;
-                Debug.Log("Player speed restored to: " + playerSpeed);
-                
-                //Hide Berry GUI 
-                berryGuiElement.SetActive(false);
+                if (berryGuiElement != null) berryGuiElement.SetActive(false);
             }
         }
     }
 
-    // FixedUpdate is called at a fixed interval and is good for physics calculations
     void FixedUpdate()
     {
-        if (rb == null) // Do nothing if no rigidbody or if it's kinematic
-            return;
+        if (rb == null) return;
 
-        if (!isGrounded) // Only apply when in the air
+        if (!isGrounded && !rb.isKinematic) // Apply fall multiplier only when jumping/falling
         {
-            // Apply fall multiplier
-            if (rb.linearVelocity.y < 0) // If the player is falling (velocity is negative)
+            if (rb.linearVelocity.y < 0)
             {
-                // We multiply by (fallMultiplier - 1) because gravity is already applying 1x force
-                // ForceMode.Acceleration applies an acceleration that ignores mass, good for our gravity-like fall
                 rb.AddForce(Vector3.up * Physics.gravity.y * (fallMultiplier - 1), ForceMode.Acceleration);
             }
-
         }
-        
-        // Process the last touched pickup, if any
+
         if (lastTouchedPickup != null)
         {
             GameObject pickupToProcess = lastTouchedPickup;
-            lastTouchedPickup = null; // Clear it immediately to handle the next potential pickup
+            lastTouchedPickup = null;
 
-            if (pickupToProcess == null) // Should not happen if collider was disabled, but good check
-            {
-                return;
-            }
+            if (pickupToProcess == null) return;
 
-            // Identify and process the pickup
             if (pickupToProcess.CompareTag(berryPickupTag))
             {
-                ApplyBerryEffect(0.5f, 5f);
-                Debug.Log("Berry collected, slowing player (processed in FixedUpdate)", this);
+                ApplyBerryEffect(0.5f, 5f); // This will now also call GameManager
             }
             else if (pickupToProcess.CompareTag(wolfPickupTag))
             {
                 WolfPickup wolfPickupScript = pickupToProcess.GetComponent<WolfPickup>();
                 if (wolfPickupScript != null)
                 {
-                    ActivateWolfPowerUp(wolfPickupScript.powerUpDuration);
+                    ActivateWolfPowerUp(wolfPickupScript.powerUpDuration); // This will now also call GameManager
                 }
             }
             else if (pickupToProcess.CompareTag(shieldPickupTag))
             {
-                ActivateShieldPowerUp();
+                ActivateShieldPowerUp(); // This will now also call GameManager
             }
-
-            Destroy(pickupToProcess); // Destroy the pickup after processing
+            Destroy(pickupToProcess);
         }
-        
-        //Check score to spawn the boss 
-        if (gameManagerComp.GetScore() >= nextBossSpawnScoreThreshold)
+
+        //Check score to spawn the boss
+        if (GameManager.Instance != null && BossSpawnerComp != null &&
+            GameManager.Instance.GetScore() >= nextBossSpawnScoreThreshold)
         {
-            //Spawn the boss 
             BossSpawnerComp.SpawnBoss();
-            // Set the next threshold for the boss spawn
-            nextBossSpawnScoreThreshold += 40;
+            GameManager.Instance.ReportBossSpawned(); // Invoke the event
+            nextBossSpawnScoreThreshold += 40; // Or some other logic for next threshold
         }
     }
 
     private void UpdateTargetPosition()
     {
-        // Target position should only care about the X for lanes. Y is handled by jump/gravity.
         targetPosition = new Vector3(lanePositions[currentLane], transform.position.y, transform.position.z);
     }
 
@@ -256,167 +219,124 @@ public class PlayerMovement : MonoBehaviour
         if (collision.gameObject.CompareTag("Ground"))
         {
             isGrounded = true;
-            if (playerAnimator != null)
-            {
-                playerAnimator.SetBool("IsJumping", false);
-            }
+            if (rb != null && !rb.isKinematic) rb.isKinematic = true; // Make kinematic again
+            if (playerAnimator != null) playerAnimator.SetBool("IsJumping", false);
         }
     }
-    
-    //For the pickup collection
+
     void OnTriggerEnter(Collider other)
     {
         if (other.CompareTag(berryPickupTag) ||
             other.CompareTag(wolfPickupTag) ||
             other.CompareTag(shieldPickupTag))
         {
-            
             lastTouchedPickup = other.gameObject;
-            other.enabled = false; // Disable the collider of the pickup to prevent re-triggering
+            other.enabled = false;
         }
     }
 
     public bool CheckShield()
+    {
+        if (isShieldActive)
         {
-                if (isShieldActive)
-                {
-                    Debug.Log("Shield absorbed obstacle hit!");
-                    isShieldActive = false; // Consume the shield
-                    StopFlashingEffect();   // Stop the visual effect
-                    //Hide GUI 
-                    ShieldGuiElement.SetActive(false);
-                    // Indicate to not end the game 
-                    return false; 
-                }
-                else
-                {
-                    // Player hit an obstacle without a shield - Handle Game Over
-                    Debug.Log("Player hit obstacle! Game Over.");
-                    // End Game
-                    return true;
-                }
+            isShieldActive = false;
+            StopFlashingEffect();
+            if (ShieldGuiElement != null) ShieldGuiElement.SetActive(false);
+            return false;
         }
+        return true;
+    }
 
     public void ApplyBerryEffect(float slowMultiplier, float duration)
     {
         if (!isSlowed)
         {
-            //Slow the player speed
             playerSpeed *= slowMultiplier;
             slowTimer = duration;
-            if (obstacleSpawnerIns != null)
-            {
-                obstacleSpawnerIns.spawnInterval *= 2f; // Clear way to write "times 2"
-            }
+            if (obstacleSpawnerIns != null) obstacleSpawnerIns.spawnInterval *= 2f;
             isSlowed = true;
-            //Show Berry GUI 
-            berryGuiElement.SetActive(true);
-            Debug.Log("Player slowed to: " + playerSpeed);
+            if (berryGuiElement != null) berryGuiElement.SetActive(true);
+            GameManager.Instance?.ReportPickupActivated(GameManager.PickupType.Berry); // Invoke event
         }
     }
-    
-//Implementation for Wolf Pathfinding pickup
+
     public void ActivateWolfPowerUp(float duration)
     {
-        Debug.Log("Player picked up Wolf PowerUp", this);
         if (wolfPrefab == null)
         {
-            Debug.LogError("Wolf Prefab not assigned in PlayerMovement script", this);
+            Debug.LogError("Wolf Prefab not assigned!");
             return;
         }
 
-        // Instantiate the wolf if it doesn't exist or isn't active
         if (activeWolfInstance == null || !activeWolfInstance.gameObject.activeInHierarchy)
         {
             GameObject wolfGO = Instantiate(wolfPrefab);
             activeWolfInstance = wolfGO.GetComponent<WolfController>();
-
             if (activeWolfInstance == null)
             {
-                Debug.Log("WolfController component not found on instantiated wolfPrefab", wolfGO);
-                Destroy(wolfGO); // Clean up
+                Destroy(wolfGO);
                 return;
             }
         }
-
-        // Activate/Re-activate the wolf
         activeWolfInstance.Activate(transform, duration, this.playerSpeed, this.currentLane, this.lanePositions);
-        isWolfPowerUpActive = true;
+        // isWolfPowerUpActive = true; // activeWolfInstance can determine its own active state
         if (WolfGuiElement != null) WolfGuiElement.SetActive(true);
+        GameManager.Instance?.ReportPickupActivated(GameManager.PickupType.Wolf); // Invoke event
     }
-
 
     public void ActivateShieldPowerUp()
     {
-        if (!isShieldActive) // Only activate if not already active, or re-activate
+        if (!isShieldActive)
         {
-            Debug.Log("Shield PowerUp Activated!");
             isShieldActive = true;
-            //Show Shield GUI 
-            ShieldGuiElement.SetActive(true);
+            if (ShieldGuiElement != null) ShieldGuiElement.SetActive(true);
             StartFlashingEffect();
+            GameManager.Instance?.ReportPickupActivated(GameManager.PickupType.Shield); // Invoke event
         }
     }
 
     private void StartFlashingEffect()
     {
-        //Error check if player renderer not found
         if (playerRenderers == null || playerRenderers.Length == 0) return;
-
-        if (flashingCoroutine != null)
-        {
-            StopCoroutine(flashingCoroutine);
-        }
+        if (flashingCoroutine != null) StopCoroutine(flashingCoroutine);
         flashingCoroutine = StartCoroutine(FlashingEffectCoroutine());
     }
 
     private void StopFlashingEffect()
     {
         if (playerRenderers == null || playerRenderers.Length == 0) return;
-
         if (flashingCoroutine != null)
         {
             StopCoroutine(flashingCoroutine);
             flashingCoroutine = null;
         }
-        // Ensure all renderers are visible when effect stops
         foreach (Renderer rend in playerRenderers)
         {
             if (rend != null) rend.enabled = true;
         }
-        //Hide Shield GUI 
-        ShieldGuiElement.SetActive(true);
+        // ShieldGuiElement should be set based on isShieldActive, not always true here
+        if (ShieldGuiElement != null) ShieldGuiElement.SetActive(isShieldActive);
     }
 
     IEnumerator FlashingEffectCoroutine()
     {
-        if (playerRenderers == null || playerRenderers.Length == 0)
-        {
-            Debug.Log("Cannot start flashing effect: Player Renderers not assigned or found.");
-            yield break; // Exit coroutine if no renderers
-        }
-
-        // Ensure renderers are initially visible
+        if (playerRenderers == null || playerRenderers.Length == 0) yield break;
         foreach (Renderer rend in playerRenderers)
         {
             if (rend != null) rend.enabled = true;
         }
-
         while (isShieldActive)
         {
-            // Toggle visibility
             foreach (Renderer rend in playerRenderers)
             {
                 if (rend != null) rend.enabled = !rend.enabled;
             }
             yield return new WaitForSeconds(flashInterval);
         }
-
-        // Ensure renderers are visible once the shield is no longer active
         foreach (Renderer rend in playerRenderers)
         {
             if (rend != null) rend.enabled = true;
         }
-        flashingCoroutine = null; // Clear the coroutine reference
+        flashingCoroutine = null;
     }
 }
