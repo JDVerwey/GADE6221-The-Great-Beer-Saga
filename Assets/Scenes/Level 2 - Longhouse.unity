@@ -1321,8 +1321,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   obstaclePrefabs:
-  - {fileID: 919132149155446097, guid: 741fbdb74e7ced44890129430e87f168, type: 3}
-  - {fileID: 919132149155446097, guid: 7025532ba9600b9468ce60f14704bf42, type: 3}
+  - {fileID: 9066984121523026203, guid: d4bb6799bb6c86f419f027f75d44263a, type: 3}
+  - {fileID: 7892415870624865903, guid: b036a37ac07415b41934b0f252d77717, type: 3}
   - {fileID: 3724100466951592744, guid: 34a67837b9d4fac41a7e58872b3b2c0f, type: 3}
   player: {fileID: 2078450510}
   spawnDistance: 40
