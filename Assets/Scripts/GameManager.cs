@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
-using UnityEngine.UI;    
+using UnityEngine.UI;
 using System;
 
 public class GameManager : MonoBehaviour
@@ -10,11 +10,11 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance { get; private set; }
 
     // Game state variables
-    public static int score = 0;        // Player's current score
+    public static int score = 0;        // Player's current score for obstacles passed
+    public static int levelsBeaten = 0; // New score component for bosses beaten
     public static bool gameOver = false;// True when run ends
     public static bool isPaused = false;
-    public static int levelsBeaten = 0;
-    
+
     // UI References
     public Button resetButton; // Restart button on death panel
     public GameObject deathPanel; // Game over panel
@@ -26,7 +26,7 @@ public class GameManager : MonoBehaviour
 
     // --- Event Definitions ---
     public static event Action OnObstaclePassedEvent; // Invoked when an obstacle is passed
-    
+
     // Enum to identify pickup types
     public enum PickupType { Berry, Wolf, Shield }
     public static event Action<PickupType> OnPickupActivatedEvent; // Invoked when a pickup is activated
@@ -34,6 +34,24 @@ public class GameManager : MonoBehaviour
     public static event Action OnBossSpawnedEvent; // Invoked when a boss spawns
     public static event Action OnBossBeatenEvent;  // Invoked when a boss is beaten
     // --- End of Event Definitions ---
+
+    // --- Level Transition Fields ---
+    [Header("Level Transition Settings")]
+    public string startSceneName = "StartScene";
+    public string wildernessSceneName = "WildernessScene";
+    public string longhouseSceneName = "LonghouseScene";
+    public string[] randomPlayableLevelNames;
+    
+    public int startSceneScoreThreshold = 5;
+    public int wildernessScoreThreshold = 20;
+    public int longhouseScoreThreshold = 30;
+
+    private string currentActiveSceneName; // Keeps track of the scene currently loaded
+    
+    //Database fields 
+    [Header("Database Fields:")]
+    private int currentHighScore = 0;
+    private string playerName = "Player"; //Also overwriting the value from the edit in Main Value
 
     public int GetScore()
     {
@@ -44,21 +62,13 @@ public class GameManager : MonoBehaviour
     {
         return levelsBeaten;
     }
-    
+
     void SubscribeToEvents()
     {
         OnObstaclePassedEvent += HandleObstaclePassedScore;
         OnBossBeatenEvent += HandleBossBeatenScore;
     }
-    
-    void UpdateLevelsBeatenUI()
-    {
-        if (levelsBeatenText != null)
-        {
-            levelsBeatenText.text = "Bosses Beaten: " + levelsBeaten;
-        }
-    }
-    
+
     void Awake()
     {
         // Set up singleton
@@ -70,10 +80,11 @@ public class GameManager : MonoBehaviour
 
             // Subscribe GameManager methods to its own events
             SubscribeToEvents();
-            
+
             // Call InitializeReferences() only for the true singleton instance on its first Awake.
-            // OnSceneLoaded will handle re-initialization for subsequent scene loads.
             InitializeReferences();
+            // Initialize currentActiveSceneName for the very first scene load
+            currentActiveSceneName = SceneManager.GetActiveScene().name;
         }
         else
         {
@@ -81,17 +92,15 @@ public class GameManager : MonoBehaviour
             Destroy(gameObject); // Destroy this duplicate GameObject.
             return; // Exit Awake early for this duplicate instance.
         }
-        // Initial setup (will be called again via OnSceneLoaded after reset)
-        InitializeReferences();
     }
-    
-    // Called when the GameObject is destroyed (good practice to unsubscribe)
+
+    // Called when the GameObject is destroyed
     void OnDestroy()
     {
         SceneManager.sceneLoaded -= OnSceneLoaded;
-        
+
         UnsubscribeFromEvents(); // Unsubscribe when destroyed
-        
+
         // Clean up button listener if it exists
         if (resetButton != null)
             resetButton.onClick.RemoveListener(ResetGame);
@@ -100,16 +109,18 @@ public class GameManager : MonoBehaviour
         if (resumeButton != null)
             resumeButton.onClick.RemoveListener(ResumeGame);
     }
-    //Called when scene is loaded. 
+
+    //Called when scene is loaded.
     void OnSceneLoaded(Scene scene, LoadSceneMode mode)
     {
+        currentActiveSceneName = scene.name; // Update current scene name
         // Re-initialize references for the newly loaded scene
         InitializeReferences();
 
         // Reset game state here, as this runs after the scene is ready
         ResetGameState();
     }
-    
+
     // Helper method to find and set up references
     void InitializeReferences()
     {
@@ -118,15 +129,13 @@ public class GameManager : MonoBehaviour
         if (deathPanelObj != null)
         {
             deathPanel = deathPanelObj;
-            // Ensure it starts deactivated in the new scene
         }
         else
         {
             Debug.LogError("GameManager: Could not find 'DeathPanel' GameObject in the scene");
-            deathPanel = null; // Set to null so we don't try to use a bad reference
+            deathPanel = null;
         }
 
-        // Reset Button (Death Panel)
         GameObject resetButtonObj = GameObject.Find("ResetButton");
         if (resetButtonObj != null)
         {
@@ -142,7 +151,6 @@ public class GameManager : MonoBehaviour
             Debug.LogError("GameManager: Could not find 'ResetButton'");
         }
 
-        // Pause Panel
         GameObject pausePanelObj = GameObject.Find("PausePanel");
         if (pausePanelObj != null)
         {
@@ -154,7 +162,6 @@ public class GameManager : MonoBehaviour
             pausePanel = null;
         }
 
-        // Pause Restart Button
         GameObject pauseRestartButtonObj = GameObject.Find("PauseRestartButton");
         if (pauseRestartButtonObj != null)
         {
@@ -170,7 +177,6 @@ public class GameManager : MonoBehaviour
             Debug.LogError("GameManager: Could not find 'PauseRestartButton'");
         }
 
-        // Resume Button
         GameObject resumeButtonObj = GameObject.Find("ResumeButton");
         if (resumeButtonObj != null)
         {
@@ -185,50 +191,61 @@ public class GameManager : MonoBehaviour
         {
             Debug.LogError("GameManager: Could not find 'ResumeButton'");
         }
-        
-        // Score Text
+
         GameObject scoreTextObj = GameObject.Find("ScoreText");
         if (scoreTextObj != null)
         {
             scoreText = scoreTextObj.GetComponent<TMP_Text>();
-            if (scoreText != null)
-            {
-                UpdateScoreUI(); // Initialize score display
-            }
         }
         else
         {
             Debug.LogError("GameManager: Could not find 'ScoreText'");
             scoreText = null;
         }
-        UpdateScoreUI();
+
+        // Find UI for levels beaten
+        GameObject levelsBeatenTextObj = GameObject.Find("LevelsBeatenText");
+        if (levelsBeatenTextObj != null)
+        {
+            levelsBeatenText = levelsBeatenTextObj.GetComponent<TMP_Text>();
+        }
+        else
+        {
+            Debug.LogWarning("GameManager: Could not find 'LevelsBeatenText' UI element. Levels beaten score will not be displayed.");
+            levelsBeatenText = null;
+        }
+
+        UpdateScoreUI(); // Initialize score display
         UpdateLevelsBeatenUI(); // Initialize new score display
     }
-    
+
     // Reset game state variables
     void ResetGameState()
     {
         score = 0;
+        levelsBeaten = 0; // Reset new score
         gameOver = false;
         isPaused = false;
         Time.timeScale = 1f; // Ensure time is running
         if (deathPanel != null) deathPanel.SetActive(false);
         if (pausePanel != null) pausePanel.SetActive(false);
         UpdateScoreUI(); // Reset score display
-        UpdateLevelsBeatenUI();
+        UpdateLevelsBeatenUI(); // Reset new score display
     }
+
     void UnsubscribeFromEvents()
     {
         OnObstaclePassedEvent -= HandleObstaclePassedScore;
         OnBossBeatenEvent -= HandleBossBeatenScore;
     }
-    
+
     private void HandleObstaclePassedScore()
     {
         if (!gameOver && !isPaused)
         {
             score += 1;
             UpdateScoreUI();
+            CheckForLevelTransition(); // Check for transition after score updates
         }
     }
 
@@ -237,18 +254,15 @@ public class GameManager : MonoBehaviour
         if (!gameOver && !isPaused)
         {
             levelsBeaten += 1;
-            // You could also add points to the main score here if desired
-            // score += 10; // Example: Add 10 points to main score for beating a boss
             UpdateLevelsBeatenUI();
             UpdateScoreUI(); // If main score was also affected
             Debug.Log("Boss Beaten! Levels Beaten: " + levelsBeaten);
         }
     }
-    
+
     public void ReportObstaclePassed()
     {
         OnObstaclePassedEvent?.Invoke();
-        // Debug.Log("OnObstaclePassedEvent Invoked");
     }
 
     public void ReportPickupActivated(PickupType type)
@@ -263,25 +277,23 @@ public class GameManager : MonoBehaviour
         Debug.Log("OnBossSpawnedEvent Invoked");
     }
 
-    public void ReportBossBeaten() // Renamed from OnBossOvercome for clarity with event
+    public void ReportBossBeaten()
     {
         OnBossBeatenEvent?.Invoke();
-        // Debug.Log("OnBossBeatenEvent Invoked via ReportBossBeaten");
     }
-    
-    //Method to add score 
+
+    //Method to add score
     public void AddScore(int points)
     {
         if (!gameOver && !isPaused)
         {
             score += points;
-            UpdateScoreUI(); // Update UI whenever score changes
+            UpdateScoreUI();
         }
     }
 
     void Update()
     {
-        // Toggle pause with Escape key
         if (Input.GetKeyDown(KeyCode.Escape) && !gameOver)
         {
             if (isPaused)
@@ -291,21 +303,26 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    // Called by ObstacleCollider.cs when player hits an obstacle
+    // This method is called when the player collides with an obstacle.
     public void OnObstacleCollision()
     {
-        gameOver = true; // End run (Rule 5)
-        
-        //Show Game Over screen 
+        gameOver = true;
+        // Check if the final score is a new high score.
+        if (score > currentHighScore)
+        {
+            Debug.Log("New High Score! Saving to cloud...");
+            currentHighScore = score;
+            // Use the singleton to save the new high score.
+            CloudSave.Instance.SaveData(playerName, currentHighScore);
+        }
         ShowGameOverScreen();
     }
-    
+
     public void OnObstaclePassed() // Called by ObstacleSpawner.cs
     {
         ReportObstaclePassed();
     }
 
-    // This method is now simplified
     public void OnBossOvercome() // Called by BossFight.cs
     {
         ReportBossBeaten();
@@ -318,16 +335,13 @@ public class GameManager : MonoBehaviour
         ShowGameOverScreen(); // Show game over screen on boss loss too
     }
 
-
     // Reset game state for restart
     public void ResetGame()
     {
-        // Resume time before reset
-        Time.timeScale = 1f; 
-        // OnSceneLoaded and its helper methods will handle resetting state and references AFTER the scene loads.
+        Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
     }
-    
+
     void ShowGameOverScreen()
     {
         if (deathPanel != null)
@@ -338,14 +352,12 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            // This error means InitializeReferences failed to find the panel earlier
             Debug.LogError("GameManager: Cannot show Death Panel - reference is missing");
         }
     }
-    
+
     void PauseGame()
     {
-        //Check if the pause panel
         if (pausePanel != null)
         {
             isPaused = true;
@@ -369,22 +381,86 @@ public class GameManager : MonoBehaviour
             Debug.Log("Game Resumed.");
         }
     }
-    
+
     void UpdateScoreUI()
     {
         if (scoreText != null)
         {
             scoreText.text = "Score: " + score;
         }
-        else
+    }
+
+    //Level Transition Methods
+    private void CheckForLevelTransition()
+    {
+        if (gameOver || isPaused) return; // Don't transition if game is over or paused
+
+        // Transition 1 -> 2 (Start Scene to Wilderness)
+        if (currentActiveSceneName == startSceneName && score >= startSceneScoreThreshold)
         {
-            Debug.LogError("GameManager: ScoreText is null, cannot update score UI");
+            TransitionToLevel(wildernessSceneName);
+        }
+        
+        // Transition from Wilderness to a random level
+        else if (currentActiveSceneName == wildernessSceneName && score >= wildernessScoreThreshold)
+        {
+            TransitionToRandomPlayableLevel();
+        }
+        // Transition from Longhouse to a random level
+        else if (currentActiveSceneName == longhouseSceneName && score >= longhouseScoreThreshold)
+        {
+            TransitionToRandomPlayableLevel();
+        }
+    }
+
+    private void TransitionToLevel(string sceneName)
+    {
+        if (string.IsNullOrEmpty(sceneName))
+        {
+            Debug.LogError("GameManager: Attempted to transition to an empty scene name.");
+            return;
+        }
+        Debug.Log($"GameManager: Transitioning to scene: {sceneName}");
+        SceneManager.LoadScene(sceneName);
+    }
+
+    private void TransitionToRandomPlayableLevel()
+    {
+        if (randomPlayableLevelNames == null || randomPlayableLevelNames.Length == 0)
+        {
+            Debug.LogError("GameManager: No random playable levels defined in 'randomPlayableLevelNames' array. Please populate it in the Inspector.");
+            return;
+        }
+
+        int randomIndex = UnityEngine.Random.Range(0, randomPlayableLevelNames.Length);
+        string sceneToLoad = randomPlayableLevelNames[randomIndex];
+        TransitionToLevel(sceneToLoad);
+    }
+    // --- End Level Transition Methods ---
+
+    void UpdateLevelsBeatenUI()
+    {
+        if (levelsBeatenText != null)
+        {
+            levelsBeatenText.text = "Levels Beaten: " + levelsBeaten;
+        }
+    }
+    
+    //Database Logic 
+    async void LoadHighScore()
+    {
+        // Use the singleton to load data.
+        PlayerData loadedData = await CloudSave.Instance.LoadData();
+        if (loadedData != null)
+        {
+            currentHighScore = loadedData.HighestScore;
+            playerName = loadedData.PlayerName;
+            // You could update a UI element here with the high score.
         }
     }
 
     public void CloseGame()
     {
-        //Close the game 
         Application.Quit();
     }
 }

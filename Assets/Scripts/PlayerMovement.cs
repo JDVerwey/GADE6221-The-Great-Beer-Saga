@@ -16,7 +16,13 @@ public class PlayerMovement : MonoBehaviour
 
     //Fields for the jumping of our player
     private Rigidbody rb;
-    private bool isGrounded = true;
+    private bool isGrounded; // We will now check this every frame in Update()
+
+    // --- New Fields for Robust Ground Check ---
+    [Header("Ground Check Settings")]
+    public Transform groundCheck;
+    public float groundDistance = 0.4f;
+    public LayerMask groundMask;
 
     // Jump physics improvements
     [Header("Jump Physics Control")]
@@ -51,10 +57,7 @@ public class PlayerMovement : MonoBehaviour
     public GameObject berryGuiElement;
     public GameObject ShieldGuiElement;
     public GameObject WolfGuiElement;
-
-    private bool isWolfPowerUpActive = false; // This might be redundant if activeWolfInstance is checked
-
-    // GameManager gameManagerComp; // Can be removed if only using GameManager.Instance
+    
     BossSpawner BossSpawnerComp;
     private int nextBossSpawnScoreThreshold = 40;
 
@@ -77,6 +80,13 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
+        if (groundCheck == null)
+        {
+            Debug.LogError("GroundCheck transform not assigned in the Inspector!");
+            enabled = false;
+            return;
+        }
+
         rb.isKinematic = true;
         targetPosition = transform.position =
             new Vector3(lanePositions[currentLane], transform.position.y, transform.position.z);
@@ -95,8 +105,6 @@ public class PlayerMovement : MonoBehaviour
         if (ShieldGuiElement != null) ShieldGuiElement.SetActive(false);
         if (WolfGuiElement != null) WolfGuiElement.SetActive(false);
 
-        // gameManagerComp = GameManager.Instance; // Access via singleton if needed, but direct calls are fine
-
         GameObject BossSpawnerObject = GameObject.Find("BossSpawner");
         if (BossSpawnerObject != null)
             BossSpawnerComp = BossSpawnerObject.GetComponent<BossSpawner>();
@@ -109,8 +117,36 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        transform.Translate(Vector3.forward * Time.deltaTime * playerSpeed, Space.World);
+        // --- Ground and State Management ---
+        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
 
+        // Landing Logic: Only run if we are on the ground, non-kinematic, AND not moving upwards.
+        // The velocity check prevents the jump from being cancelled in the same frame it starts.
+        if (isGrounded && !rb.isKinematic)
+        {
+            // A small downward velocity check ensures we don't snap back to kinematic while moving up.
+            if (rb.linearVelocity.y <= 0.1f) 
+            {
+                rb.isKinematic = true;
+                if (playerAnimator != null) playerAnimator.SetBool("IsJumping", false);
+            }
+        }
+        
+        // --- Player Input ---
+
+        // Jumping when space is pressed
+        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
+        {
+            if (rb != null)
+            {
+                rb.isKinematic = false; // Allow physics to control movement
+                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+                
+                if (playerAnimator != null) playerAnimator.SetBool("IsJumping", true);
+            }
+        }
+        
+        // Lane switching input
         if (Input.GetKeyDown(KeyCode.A) && currentLane > 0)
         {
             currentLane--;
@@ -124,10 +160,21 @@ public class PlayerMovement : MonoBehaviour
             targetRotation = Quaternion.Euler(0, maxRotationAngle, 0);
         }
 
+        // --- Movement and Rotation ---
+
+        // Move forward continuously
+        transform.Translate(Vector3.forward * Time.deltaTime * playerSpeed, Space.World);
+        
+        // Smoothly move to target lane position (X and Z)
         Vector3 currentPos = transform.position;
         float newX = Mathf.Lerp(currentPos.x, targetPosition.x, Time.deltaTime * laneSwitchSpeed);
-        transform.position = new Vector3(newX, currentPos.y, currentPos.z);
+        
+        // Let physics handle Y-axis when not kinematic
+        float newY = rb.isKinematic ? currentPos.y : transform.position.y;
 
+        transform.position = new Vector3(newX, newY, currentPos.z);
+
+        // Logic to straighten rotation when in lane
         if (Mathf.Abs(transform.position.x - targetPosition.x) < 0.05f)
         {
             if (targetRotation != Quaternion.identity)
@@ -135,19 +182,13 @@ public class PlayerMovement : MonoBehaviour
                 targetRotation = Quaternion.identity;
             }
         }
+        // Smoothly rotate player towards the targetRotation
         transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, Time.deltaTime * rotationSpeed);
 
-        if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
-        {
-            if (rb != null)
-            {
-                rb.isKinematic = false;
-                rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-                isGrounded = false;
-                if (playerAnimator != null) playerAnimator.SetBool("IsJumping", true);
-            }
-        }
 
+        // --- Effects ---
+        
+        // Handle slow timer
         if (isSlowed)
         {
             slowTimer -= Time.deltaTime;
@@ -165,7 +206,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (rb == null) return;
 
-        if (!isGrounded && !rb.isKinematic) // Apply fall multiplier only when jumping/falling
+        // Apply fall multiplier only when jumping/falling
+        if (!isGrounded && !rb.isKinematic) 
         {
             if (rb.linearVelocity.y < 0)
             {
@@ -182,19 +224,19 @@ public class PlayerMovement : MonoBehaviour
 
             if (pickupToProcess.CompareTag(berryPickupTag))
             {
-                ApplyBerryEffect(0.5f, 5f); // This will now also call GameManager
+                ApplyBerryEffect(0.5f, 5f);
             }
             else if (pickupToProcess.CompareTag(wolfPickupTag))
             {
                 WolfPickup wolfPickupScript = pickupToProcess.GetComponent<WolfPickup>();
                 if (wolfPickupScript != null)
                 {
-                    ActivateWolfPowerUp(wolfPickupScript.powerUpDuration); // This will now also call GameManager
+                    ActivateWolfPowerUp(wolfPickupScript.powerUpDuration);
                 }
             }
             else if (pickupToProcess.CompareTag(shieldPickupTag))
             {
-                ActivateShieldPowerUp(); // This will now also call GameManager
+                ActivateShieldPowerUp();
             }
             Destroy(pickupToProcess);
         }
@@ -203,6 +245,10 @@ public class PlayerMovement : MonoBehaviour
         if (GameManager.Instance != null && BossSpawnerComp != null &&
             GameManager.Instance.GetScore() >= nextBossSpawnScoreThreshold)
         {
+            // NOTE: This will cause an error if BossSpawner.cs does not have a public IsBossActive() method/property.
+            // It is highly recommended to add one to prevent multiple bosses from spawning.
+            // Example: && !BossSpawnerComp.IsBossActive()
+            
             BossSpawnerComp.SpawnBoss();
             GameManager.Instance.ReportBossSpawned(); // Invoke the event
             nextBossSpawnScoreThreshold += 40; // Or some other logic for next threshold
@@ -214,14 +260,12 @@ public class PlayerMovement : MonoBehaviour
         targetPosition = new Vector3(lanePositions[currentLane], transform.position.y, transform.position.z);
     }
 
+    // This method is no longer needed for ground detection and can be removed
+    // if it's not used for other collision types.
     void OnCollisionEnter(Collision collision)
     {
-        if (collision.gameObject.CompareTag("Ground"))
-        {
-            isGrounded = true;
-            if (rb != null && !rb.isKinematic) rb.isKinematic = true; // Make kinematic again
-            if (playerAnimator != null) playerAnimator.SetBool("IsJumping", false);
-        }
+        // The ground check logic has been moved to Update() for reliability.
+        // If you have other collision logic (e.g., for walls), it can stay.
     }
 
     void OnTriggerEnter(Collider other)
@@ -279,7 +323,6 @@ public class PlayerMovement : MonoBehaviour
             }
         }
         activeWolfInstance.Activate(transform, duration, this.playerSpeed, this.currentLane, this.lanePositions);
-        // isWolfPowerUpActive = true; // activeWolfInstance can determine its own active state
         if (WolfGuiElement != null) WolfGuiElement.SetActive(true);
         GameManager.Instance?.ReportPickupActivated(GameManager.PickupType.Wolf); // Invoke event
     }
@@ -314,7 +357,6 @@ public class PlayerMovement : MonoBehaviour
         {
             if (rend != null) rend.enabled = true;
         }
-        // ShieldGuiElement should be set based on isShieldActive, not always true here
         if (ShieldGuiElement != null) ShieldGuiElement.SetActive(isShieldActive);
     }
 
@@ -338,5 +380,21 @@ public class PlayerMovement : MonoBehaviour
             if (rend != null) rend.enabled = true;
         }
         flashingCoroutine = null;
+    }
+    // --- Gizmo for Visualizing the Ground Check ---
+    private void OnDrawGizmosSelected()
+    {
+        // Ensure we have a groundCheck transform to avoid errors in the editor.
+        if (groundCheck == null)
+        {
+            return;
+        }
+
+        // Set the color of the gizmo based on the isGrounded state.
+        // This will show green when grounded and red when airborne in the Scene view.
+        Gizmos.color = isGrounded ? Color.green : Color.red;
+
+        // Draw a wireframe sphere that matches the Physics.CheckSphere call.
+        Gizmos.DrawWireSphere(groundCheck.position, groundDistance);
     }
 }
