@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using System;
+using Unity.Services.Leaderboards;
 
 public class GameManager : MonoBehaviour
 {
@@ -308,18 +309,38 @@ public class GameManager : MonoBehaviour
     }
 
     // This method is called when the player collides with an obstacle.
-    public void OnObstacleCollision()
+    public async void OnObstacleCollision()
     {
+        //Stopping the game
         gameOver = true;
-        // Check if the final score is a new high score.
+
+        ShowGameOverScreen();
+        
+        //Database work
+        // Check if the final score is a new high score for the individual player.
         if (score > currentHighScore)
         {
-            Debug.Log("New High Score! Saving to cloud...");
+            Debug.Log("New Personal High Score! Saving to cloud...");
             currentHighScore = score;
-            // Use the singleton to save the new high score.
-            CloudSave.Instance.SaveData(playerName, currentHighScore);
+
+            // Use the singleton to save the individual player's data
+            // Also passing the player's name
+            await CloudSave.Instance.SaveData(playerName, currentHighScore);
         }
-        ShowGameOverScreen();
+    
+        //Submit score to leaderboard
+        try
+        {
+            // The ID here MUST match the ID created in the dashboard
+            var scoresResponse = await LeaderboardsService.Instance.AddPlayerScoreAsync("Most_Drunken_Viking", score);
+            Debug.Log($"Successfully submitted score {score} to the Most Drunken Viking leaderboard.");
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Failed to submit score to leaderboard: {e}");
+        }
+
+        
     }
 
     public void OnObstaclePassed() // Called by ObstacleSpawner.cs
