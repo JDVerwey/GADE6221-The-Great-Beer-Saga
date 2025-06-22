@@ -14,15 +14,9 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 targetPosition;
     public float laneSwitchSpeed = 10f; // Speed of lane transition
 
-    //Fields for the jumping of our player
+    //Fields for the jumping of our player, using the collision-based method
     private Rigidbody rb;
-    private bool isGrounded; // We will now check this every frame in Update()
-
-    // --- New Fields for Robust Ground Check ---
-    [Header("Ground Check Settings")]
-    public Transform groundCheck;
-    public float groundDistance = 0.4f;
-    public LayerMask groundMask;
+    private bool isGrounded = true; // Start as grounded
 
     // Jump physics improvements
     [Header("Jump Physics Control")]
@@ -39,7 +33,7 @@ public class PlayerMovement : MonoBehaviour
     private Animator playerAnimator;
 
     [Header("PowerUps")]
-    public GameObject wolfPrefab; // Assign your Wolf Prefab in the Inspector
+    public GameObject wolfPrefab;
     private WolfController activeWolfInstance;
     private bool isShieldActive = false;
     private Coroutine flashingCoroutine;
@@ -80,13 +74,7 @@ public class PlayerMovement : MonoBehaviour
             return;
         }
 
-        if (groundCheck == null)
-        {
-            Debug.LogError("GroundCheck transform not assigned in the Inspector!");
-            enabled = false;
-            return;
-        }
-
+        // The rigidbody is kinematic by default, physics only take over during a jump.
         rb.isKinematic = true;
         targetPosition = transform.position =
             new Vector3(lanePositions[currentLane], transform.position.y, transform.position.z);
@@ -117,32 +105,22 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // --- Ground and State Management ---
-        isGrounded = Physics.CheckSphere(groundCheck.position, groundDistance, groundMask);
-
-        // Landing Logic: Only run if we are on the ground, non-kinematic, AND not moving upwards.
-        // The velocity check prevents the jump from being cancelled in the same frame it starts.
-        if (isGrounded && !rb.isKinematic)
-        {
-            // A small downward velocity check ensures we don't snap back to kinematic while moving up.
-            if (rb.linearVelocity.y <= 0.1f) 
-            {
-                rb.isKinematic = true;
-                if (playerAnimator != null) playerAnimator.SetBool("IsJumping", false);
-            }
-        }
-        
         // --- Player Input ---
 
-        // Jumping when space is pressed
+        // Jumping when space is pressed (using the collision-based isGrounded check)
         if (Input.GetKeyDown(KeyCode.Space) && isGrounded)
         {
             if (rb != null)
             {
-                rb.isKinematic = false; // Allow physics to control movement
+                rb.isKinematic = false; // Temporarily disable kinematic for jump
                 rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
-                
-                if (playerAnimator != null) playerAnimator.SetBool("IsJumping", true);
+                isGrounded = false; // We are now in the air
+
+                // Trigger jump animation
+                if (playerAnimator != null)
+                {
+                    playerAnimator.SetBool("IsJumping", true);
+                }
             }
         }
         
@@ -165,14 +143,13 @@ public class PlayerMovement : MonoBehaviour
         // Move forward continuously
         transform.Translate(Vector3.forward * Time.deltaTime * playerSpeed, Space.World);
         
-        // Smoothly move to target lane position (X and Z)
+        // Smoothly move to target lane position
         Vector3 currentPos = transform.position;
         float newX = Mathf.Lerp(currentPos.x, targetPosition.x, Time.deltaTime * laneSwitchSpeed);
         
-        // Let physics handle Y-axis when not kinematic
-        float newY = rb.isKinematic ? currentPos.y : transform.position.y;
-
-        transform.position = new Vector3(newX, newY, currentPos.z);
+        // The Y-axis is now controlled by the Rigidbody during jumps, so we don't need special handling here.
+        // We can directly set the position because the Rigidbody is kinematic when on the ground.
+        transform.position = new Vector3(newX, transform.position.y, currentPos.z);
 
         // Logic to straighten rotation when in lane
         if (Mathf.Abs(transform.position.x - targetPosition.x) < 0.05f)
@@ -206,8 +183,8 @@ public class PlayerMovement : MonoBehaviour
     {
         if (rb == null) return;
 
-        // Apply fall multiplier only when jumping/falling
-        if (!isGrounded && !rb.isKinematic) 
+        // Apply fall multiplier only when in the air
+        if (!isGrounded) 
         {
             if (rb.linearVelocity.y < 0)
             {
@@ -215,6 +192,7 @@ public class PlayerMovement : MonoBehaviour
             }
         }
 
+        // Handle pickup logic
         if (lastTouchedPickup != null)
         {
             GameObject pickupToProcess = lastTouchedPickup;
@@ -245,10 +223,6 @@ public class PlayerMovement : MonoBehaviour
         if (GameManager.Instance != null && BossSpawnerComp != null &&
             GameManager.Instance.GetScore() >= nextBossSpawnScoreThreshold)
         {
-            // NOTE: This will cause an error if BossSpawner.cs does not have a public IsBossActive() method/property.
-            // It is highly recommended to add one to prevent multiple bosses from spawning.
-            // Example: && !BossSpawnerComp.IsBossActive()
-            
             BossSpawnerComp.SpawnBoss();
             GameManager.Instance.ReportBossSpawned(); // Invoke the event
             nextBossSpawnScoreThreshold += 40; // Or some other logic for next threshold
@@ -257,16 +231,31 @@ public class PlayerMovement : MonoBehaviour
 
     private void UpdateTargetPosition()
     {
+        // We only update the target for the X position (lanes). Y is handled by physics.
         targetPosition = new Vector3(lanePositions[currentLane], transform.position.y, transform.position.z);
     }
 
-    // This method is no longer needed for ground detection and can be removed
-    // if it's not used for other collision types.
+    // This method handles all ground detection logic.
     void OnCollisionEnter(Collision collision)
     {
-        // The ground check logic has been moved to Update() for reliability.
-        // If you have other collision logic (e.g., for walls), it can stay.
+        // Check if the player has landed on an object tagged "Ground".
+        if (collision.gameObject.CompareTag("Ground"))
+        {
+            // Only consider it a true landing if the player is not moving upwards.
+            // This prevents the jump from being cancelled in the same frame it's initiated.
+            if (rb.linearVelocity.y <= 0.1f)
+            {
+                isGrounded = true;
+                rb.isKinematic = true; // Return to being kinematic upon landing.
+
+                if (playerAnimator != null)
+                {
+                    playerAnimator.SetBool("IsJumping", false);
+                }
+            }
+        }
     }
+
 
     void OnTriggerEnter(Collider other)
     {
@@ -380,21 +369,5 @@ public class PlayerMovement : MonoBehaviour
             if (rend != null) rend.enabled = true;
         }
         flashingCoroutine = null;
-    }
-    // --- Gizmo for Visualizing the Ground Check ---
-    private void OnDrawGizmosSelected()
-    {
-        // Ensure we have a groundCheck transform to avoid errors in the editor.
-        if (groundCheck == null)
-        {
-            return;
-        }
-
-        // Set the color of the gizmo based on the isGrounded state.
-        // This will show green when grounded and red when airborne in the Scene view.
-        Gizmos.color = isGrounded ? Color.green : Color.red;
-
-        // Draw a wireframe sphere that matches the Physics.CheckSphere call.
-        Gizmos.DrawWireSphere(groundCheck.position, groundDistance);
     }
 }
