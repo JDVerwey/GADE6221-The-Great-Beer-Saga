@@ -37,12 +37,11 @@ public class GameManager : MonoBehaviour
 
     // --- Level Transition Fields ---
     [Header("Level Transition Settings")]
-    public string startSceneName = "StartScene";
-    public string wildernessSceneName = "WildernessScene";
-    public string longhouseSceneName = "LonghouseScene";
+    public string startSceneName = "MainMenu";
+    public string wildernessSceneName = "Level 1 - Wilderness";
+    public string longhouseSceneName = "Level 2 - Longhouse";
     public string[] randomPlayableLevelNames;
     
-    public int startSceneScoreThreshold = 5;
     public int wildernessScoreThreshold = 20;
     public int longhouseScoreThreshold = 30;
 
@@ -124,99 +123,104 @@ public class GameManager : MonoBehaviour
     // Helper method to find and set up references
     void InitializeReferences()
     {
-        // --- Find UI Elements ---
-        GameObject deathPanelObj = GameObject.Find("DeathPanel");
-        if (deathPanelObj != null)
+        // Only search for in-game UI if we are in a playable level scene.
+        if (currentActiveSceneName == wildernessSceneName || currentActiveSceneName == longhouseSceneName)
         {
-            deathPanel = deathPanelObj;
-        }
-        else
-        {
-            Debug.LogError("GameManager: Could not find 'DeathPanel' GameObject in the scene");
-            deathPanel = null;
-        }
-
-        GameObject resetButtonObj = GameObject.Find("ResetButton");
-        if (resetButtonObj != null)
-        {
-            resetButton = resetButtonObj.GetComponent<Button>();
-            if (resetButton != null)
+            // --- Find UI Elements ---
+            GameObject deathPanelObj = GameObject.Find("DeathPanel");
+            if (deathPanelObj != null)
             {
-                resetButton.onClick.RemoveAllListeners();
-                resetButton.onClick.AddListener(ResetGame);
+                deathPanel = deathPanelObj;
             }
-        }
-        else
-        {
-            Debug.LogError("GameManager: Could not find 'ResetButton'");
-        }
-
-        GameObject pausePanelObj = GameObject.Find("PausePanel");
-        if (pausePanelObj != null)
-        {
-            pausePanel = pausePanelObj;
-        }
-        else
-        {
-            Debug.LogError("GameManager: Could not find 'PausePanel'");
-            pausePanel = null;
-        }
-
-        GameObject pauseRestartButtonObj = GameObject.Find("PauseRestartButton");
-        if (pauseRestartButtonObj != null)
-        {
-            pauseRestartButton = pauseRestartButtonObj.GetComponent<Button>();
-            if (pauseRestartButton != null)
+            else
             {
-                pauseRestartButton.onClick.RemoveAllListeners();
-                pauseRestartButton.onClick.AddListener(ResetGame);
+                Debug.LogError("GameManager: Could not find 'DeathPanel' GameObject in the scene");
+                deathPanel = null;
             }
-        }
-        else
-        {
-            Debug.LogError("GameManager: Could not find 'PauseRestartButton'");
-        }
 
-        GameObject resumeButtonObj = GameObject.Find("ResumeButton");
-        if (resumeButtonObj != null)
-        {
-            resumeButton = resumeButtonObj.GetComponent<Button>();
-            if (resumeButton != null)
+            GameObject resetButtonObj = GameObject.Find("ResetButton");
+            if (resetButtonObj != null)
             {
-                resumeButton.onClick.RemoveAllListeners();
-                resumeButton.onClick.AddListener(ResumeGame);
+                resetButton = resetButtonObj.GetComponent<Button>();
+                if (resetButton != null)
+                {
+                    resetButton.onClick.RemoveAllListeners();
+                    resetButton.onClick.AddListener(ResetGame);
+                }
             }
-        }
-        else
-        {
-            Debug.LogError("GameManager: Could not find 'ResumeButton'");
-        }
+            else
+            {
+                Debug.LogError("GameManager: Could not find 'ResetButton'");
+            }
 
-        GameObject scoreTextObj = GameObject.Find("ScoreText");
-        if (scoreTextObj != null)
-        {
-            scoreText = scoreTextObj.GetComponent<TMP_Text>();
-        }
-        else
-        {
-            Debug.LogError("GameManager: Could not find 'ScoreText'");
-            scoreText = null;
-        }
+            GameObject pausePanelObj = GameObject.Find("PausePanel");
+            if (pausePanelObj != null)
+            {
+                pausePanel = pausePanelObj;
+            }
+            else
+            {
+                Debug.LogError("GameManager: Could not find 'PausePanel'");
+                pausePanel = null;
+            }
 
-        // Find UI for levels beaten
-        GameObject levelsBeatenTextObj = GameObject.Find("LevelsBeatenText");
-        if (levelsBeatenTextObj != null)
-        {
-            levelsBeatenText = levelsBeatenTextObj.GetComponent<TMP_Text>();
-        }
-        else
-        {
-            Debug.LogWarning("GameManager: Could not find 'LevelsBeatenText' UI element. Levels beaten score will not be displayed.");
-            levelsBeatenText = null;
-        }
+            GameObject pauseRestartButtonObj = GameObject.Find("PauseRestartButton");
+            if (pauseRestartButtonObj != null)
+            {
+                pauseRestartButton = pauseRestartButtonObj.GetComponent<Button>();
+                if (pauseRestartButton != null)
+                {
+                    pauseRestartButton.onClick.RemoveAllListeners();
+                    pauseRestartButton.onClick.AddListener(ResetGame);
+                }
+            }
+            else
+            {
+                Debug.LogError("GameManager: Could not find 'PauseRestartButton'");
+            }
 
-        UpdateScoreUI(); // Initialize score display
-        UpdateLevelsBeatenUI(); // Initialize new score display
+            GameObject resumeButtonObj = GameObject.Find("ResumeButton");
+            if (resumeButtonObj != null)
+            {
+                resumeButton = resumeButtonObj.GetComponent<Button>();
+                if (resumeButton != null)
+                {
+                    resumeButton.onClick.RemoveAllListeners();
+                    resumeButton.onClick.AddListener(ResumeGame);
+                }
+            }
+            else
+            {
+                Debug.LogError("GameManager: Could not find 'ResumeButton'");
+            }
+
+            GameObject scoreTextObj = GameObject.Find("ScoreText");
+            if (scoreTextObj != null)
+            {
+                scoreText = scoreTextObj.GetComponent<TMP_Text>();
+            }
+            else
+            {
+                Debug.LogError("GameManager: Could not find 'ScoreText'");
+                scoreText = null;
+            }
+
+            // Find UI for levels beaten
+            GameObject levelsBeatenTextObj = GameObject.Find("LevelsBeatenText");
+            if (levelsBeatenTextObj != null)
+            {
+                levelsBeatenText = levelsBeatenTextObj.GetComponent<TMP_Text>();
+            }
+            else
+            {
+                Debug.LogWarning(
+                    "GameManager: Could not find 'LevelsBeatenText' UI element. Levels beaten score will not be displayed.");
+                levelsBeatenText = null;
+            }
+
+            UpdateScoreUI(); // Initialize score display
+            UpdateLevelsBeatenUI(); // Initialize new score display
+        }
     }
 
     // Reset game state variables
@@ -390,19 +394,20 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    //Main Menu to Wilderness 
+    public void TransitionFirstScene()
+    {
+        // Transition 1 -> 2 (Start Scene to Wilderness)
+            TransitionToLevel(wildernessSceneName);
+            Debug.Log("Going to first level");
+    }
     //Level Transition Methods
     private void CheckForLevelTransition()
     {
         if (gameOver || isPaused) return; // Don't transition if game is over or paused
-
-        // Transition 1 -> 2 (Start Scene to Wilderness)
-        if (currentActiveSceneName == startSceneName && score >= startSceneScoreThreshold)
-        {
-            TransitionToLevel(wildernessSceneName);
-        }
         
         // Transition from Wilderness to a random level
-        else if (currentActiveSceneName == wildernessSceneName && score >= wildernessScoreThreshold)
+        if (currentActiveSceneName == wildernessSceneName && score >= wildernessScoreThreshold)
         {
             TransitionToRandomPlayableLevel();
         }

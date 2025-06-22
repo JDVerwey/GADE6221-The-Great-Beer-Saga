@@ -155,11 +155,12 @@ MonoBehaviour:
   resumeButton: {fileID: 721611319}
   scoreText: {fileID: 1987364283}
   levelsBeatenText: {fileID: 0}
-  startSceneName: Level 1 - Wilderness
-  wildernessSceneName: Level 2 - Longhouse
+  startSceneName: MainMenu
+  wildernessSceneName: Level 1 - Wilderness
   longhouseSceneName: Level 2 - Longhouse
-  randomPlayableLevelNames: []
-  startSceneScoreThreshold: 5
+  randomPlayableLevelNames:
+  - Level 1 - Wilderness
+  - Level 2 - Longhouse
   wildernessScoreThreshold: 20
   longhouseScoreThreshold: 30
 --- !u!4 &73129141
