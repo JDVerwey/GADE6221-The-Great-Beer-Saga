@@ -1445,11 +1445,6 @@ MonoBehaviour:
   playerSpeed: 14
   jumpForce: 6
   laneSwitchSpeed: 10
-  groundCheck: {fileID: 1318288084}
-  groundDistance: 0.4
-  groundMask:
-    serializedVersion: 2
-    m_Bits: 128
   fallMultiplier: 3
   wolfPrefab: {fileID: 44457722849579249, guid: e9117ec28393384438a05110f67c07e4, type: 3}
   playerRenderers:
@@ -1878,7 +1873,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &691290505
 RectTransform:
   m_ObjectHideFlags: 0

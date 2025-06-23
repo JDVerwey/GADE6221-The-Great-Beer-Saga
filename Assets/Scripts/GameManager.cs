@@ -51,7 +51,7 @@ public class GameManager : MonoBehaviour
     //Database fields 
     [Header("Database Fields:")]
     private int currentHighScore = 0;
-    private string playerName = "Player"; //Also overwriting the value from the edit in Main Value
+    private string playerName = "Player";
 
     public int GetScore()
     {
