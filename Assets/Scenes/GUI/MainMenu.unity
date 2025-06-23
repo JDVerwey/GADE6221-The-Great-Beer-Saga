@@ -1970,7 +1970,6 @@ MonoBehaviour:
   openButton: {fileID: 1832902548}
   playerItemPrefab: {fileID: 5556742972388515142, guid: 598bd225117010945b9eeb15f1ce6cda, type: 3}
   playersContainer: {fileID: 1935527896}
-  pageText: {fileID: 0}
   loadingText: {fileID: 2494583955419222606, guid: 836127535e83e95409668bbc9f60f603, type: 3}
 --- !u!1 &705507993
 GameObject:

@@ -364,21 +364,12 @@ public class GameManager : MonoBehaviour
     public void ResetGame()
     {
         Time.timeScale = 1f;
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        TransitionToLevel("MainMenu");
     }
 
     void ShowGameOverScreen()
     {
-        if (deathPanel != null)
-        {
-            Time.timeScale = 0f; // Pause time on game over
-            deathPanel.SetActive(true); // Show Game Over screen
-            Debug.Log("Death Panel Activated.");
-        }
-        else
-        {
-            Debug.LogError("GameManager: Cannot show Death Panel - reference is missing");
-        }
+        TransitionToLevel("DeathMenu");
     }
 
     void PauseGame()

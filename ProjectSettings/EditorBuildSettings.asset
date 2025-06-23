@@ -14,5 +14,11 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Level 2 - Longhouse.unity
     guid: eea98bfe1af31f146aec4c3f2d44f647
+  - enabled: 1
+    path: Assets/Scenes/GUI/DeathMenu.unity
+    guid: f2c3adcbe0d6a404bb92ecc726929400
+  - enabled: 1
+    path: Assets/Scenes/GUI/PauseMenu.unity
+    guid: 934ab4fec8b726e48ad4bb5793df904d
   m_configObjects: {}
   m_UseUCBPForAssetBundles: 0
