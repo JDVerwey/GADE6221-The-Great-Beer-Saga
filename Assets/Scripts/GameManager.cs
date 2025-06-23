@@ -422,13 +422,24 @@ public class GameManager : MonoBehaviour
             TransitionToLevel(wildernessSceneName);
             Debug.Log("Going to first level");
     }
+    
+    public void TransitionWilderness()
+    {
+        // Transition 1 -> 2 (Start Scene to Wilderness)
+        TransitionToLevel(longhouseSceneName);
+        Debug.Log("Going to longhouse level");
+    }
     //Level Transition Methods
     private void CheckForLevelTransition()
     {
         if (gameOver || isPaused) return; // Don't transition if game is over or paused
         
         // Transition from Wilderness to a random level
-        if (currentActiveSceneName == wildernessSceneName && score >= wildernessScoreThreshold)
+        if (currentActiveSceneName == wildernessSceneName && score >= wildernessScoreThreshold && levelsBeaten < 1)
+        {
+            TransitionWilderness();
+        }
+        else if (currentActiveSceneName == wildernessSceneName && score >= wildernessScoreThreshold)
         {
             TransitionToRandomPlayableLevel();
         }
