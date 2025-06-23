@@ -76,6 +76,10 @@ PrefabInstance:
       propertyPath: m_Layer
       value: 6
       objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 741fbdb74e7ced44890129430e87f168, type: 3}
+      propertyPath: m_TagString
+      value: Obstacle
+      objectReference: {fileID: 0}
     - target: {fileID: 5233112405309087440, guid: 741fbdb74e7ced44890129430e87f168, type: 3}
       propertyPath: m_Layer
       value: 6

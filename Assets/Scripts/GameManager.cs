@@ -313,7 +313,8 @@ public class GameManager : MonoBehaviour
     {
         //Stopping the game
         gameOver = true;
-
+        //Plays collision sound 
+        SoundManager.PlaySound(SoundType.Collide, 1);
         ShowGameOverScreen();
         
         //Database work
@@ -395,6 +396,7 @@ public class GameManager : MonoBehaviour
             Time.timeScale = 1f; // Resume time
             pausePanel.SetActive(false);
             Debug.Log("Game Resumed.");
+
         }
     }
 

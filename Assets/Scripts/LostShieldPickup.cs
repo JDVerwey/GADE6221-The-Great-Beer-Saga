@@ -12,6 +12,7 @@ public class LostShieldPickup : MonoBehaviour
             {
                 playerMovement.ActivateShieldPowerUp();
                 Destroy(gameObject); // Destroy the wolf pickup
+               
             }
         }
     }

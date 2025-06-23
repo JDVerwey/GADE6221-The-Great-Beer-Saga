@@ -289,6 +289,7 @@ public class PlayerMovement : MonoBehaviour
             if (obstacleSpawnerIns != null) obstacleSpawnerIns.spawnInterval *= 2f;
             isSlowed = true;
             if (berryGuiElement != null) berryGuiElement.SetActive(true);
+            SoundManager.PlaySound(SoundType.Berry, 1); // Play berry sound effect
             GameManager.Instance?.ReportPickupActivated(GameManager.PickupType.Berry); // Invoke event
         }
     }
@@ -313,6 +314,7 @@ public class PlayerMovement : MonoBehaviour
         }
         activeWolfInstance.Activate(transform, duration, this.playerSpeed, this.currentLane, this.lanePositions);
         if (WolfGuiElement != null) WolfGuiElement.SetActive(true);
+        SoundManager.PlaySound(SoundType.Meat, 1); // Play meat sound effect
         GameManager.Instance?.ReportPickupActivated(GameManager.PickupType.Wolf); // Invoke event
     }
 
@@ -323,6 +325,7 @@ public class PlayerMovement : MonoBehaviour
             isShieldActive = true;
             if (ShieldGuiElement != null) ShieldGuiElement.SetActive(true);
             StartFlashingEffect();
+            SoundManager.PlaySound(SoundType.Shield, 1);// Play shield sound effect
             GameManager.Instance?.ReportPickupActivated(GameManager.PickupType.Shield); // Invoke event
         }
     }
